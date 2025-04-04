@@ -42,7 +42,7 @@ $(document).ready(function () {
             let itemTop = itemOffset.top;
             let itemRight = itemLeft + $item.outerWidth();
             let itemBottom = itemTop + $item.outerHeight();
-
+            console.log($item)
             if (
                 itemRight > left &&
                 itemLeft < left + width &&
@@ -50,8 +50,10 @@ $(document).ready(function () {
                 itemTop < top + height
             ) {
                 $item.addClass("selected");
+              
             } else {
                 $item.removeClass("selected");
+               
             }
         });
 

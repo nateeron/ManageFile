@@ -137,6 +137,7 @@ select {
     align-items: center;
     padding: 8px;
     margin-right: 80px;
+    max-height: 35px;
 }
 .txt_path{
       padding-left: 20px;
@@ -178,7 +179,7 @@ select {
 .custom-btn {
     background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
-    font-size: 16px;
+    font-size: 12px;
     padding: 6px 18px;
     border: none;
     border-radius: 3px;
@@ -249,6 +250,7 @@ select {
     background-color: rgba(0, 0, 0, 0.5);
     justify-content: center;
     align-items: center;
+    z-index: 3;
 }
 
 /* Popup content box */
