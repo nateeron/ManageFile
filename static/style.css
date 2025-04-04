@@ -39,11 +39,13 @@ select {
 .container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 10px;
+    gap: 20px;
     min-height: 300px;
-    padding: 10px;
+    padding: 25px;
     background: #454545;
     border-radius: 3px;
+    touch-action: none;
+    margin-right: 80px;
 }
 .container-upload {
     max-width: 500px;
@@ -56,25 +58,28 @@ select {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 60px;
-    height: 80px;
-    padding: 9px;
-    margin: 9px;
+    /* width: 60px; */
+    height: 130px;
+    /* padding: 9px;
+    margin: 9px; */
     border-radius: 3px;
     box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     cursor: pointer;
+    /* user-select: none; */
 }
 
 .item:hover {
-    background-color: #525252a4;
+    background-color: #181818a4;
 }
 
 .item .row i {
-    font-size: 40px;
+    font-size: 80px;
     color: #1e89cb;
 }
-
+.folder-link{
+    z-index: 1;
+}
 .item .row .txt {
     text-decoration: none;
     margin-top: 5px;
@@ -131,6 +136,7 @@ select {
     justify-content: space-between;
     align-items: center;
     padding: 8px;
+    margin-right: 80px;
 }
 .txt_path{
       padding-left: 20px;
@@ -147,7 +153,7 @@ select {
     border-radius: 3px;
 }
 .item_menu:hover{
-      background: #525252;
+      background: #1f1f1f;
       cursor: pointer;
 }
 .menu_left {
@@ -160,13 +166,13 @@ select {
 .item_listDetail {
 }
 .wait_select{
-    border: 1px solid #5a5a5a;
-    border-radius: 5px;
+    /* border: 1px solid #5a5a5a;
+    border-radius: 5px; */
 }
 
 .is_select{
   
-    background-color: #6b6b6b;
+    background-color: rgb(43 43 43);
 }
 
 .custom-btn {

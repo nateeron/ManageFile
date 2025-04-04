@@ -98,7 +98,7 @@ $(document).ready(function () {
 
     $(".folder-link").on("mousedown touchstart", function (e) {
         let $this = $(this);
-        timer = setTimeout(function () {
+        // timer = setTimeout(function () {
             console.log("Hold");
             $("#selectDownload").removeClass("d-none");
             $("#deleteBtn").removeClass("d-none");
@@ -110,7 +110,7 @@ $(document).ready(function () {
                 $this.find(".item").append('<i class="fa-solid fa-check select-icon"></i>');
                 wail_select = true;
             }
-        }, holdTime);
+        // }, holdTime);
     });
 
     $(".folder-link").on("mouseup mouseleave touchend", function () {

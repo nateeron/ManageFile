@@ -7,13 +7,18 @@
       <title>File Explorer</title>
       <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
       <link rel="stylesheet" href="{{ url_for('static', filename='style_imageZoom.css') }}">
+      <link rel="stylesheet" href="{{ url_for('static', filename='style_Drag_Coverage.css') }}">
       <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
       <script src="{{ url_for('static', filename='jquery-3.7.1.min.js') }}"></script>
       <script src="{{ url_for('static', filename='script.js') }}"></script>
+      <script src="{{ url_for('static', filename='script_Drag_Coverage.js') }}"></script>
       <script src="https://kit.fontawesome.com/cdbdc0e61f.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
+            <div class="selection-box">
+            </div>
+    
       <div id="popup" class="popup">
             <div class="popup-content">
                   <span id="close" class="close">&times;</span>
@@ -77,12 +82,12 @@
             </div>
       </div>
 
-      <div class="container" id="dropZone">
+      <div class="container drag-area " id="dropZone">
 
             {% for folder in folders %}
-            <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ folder }}')"
+            <a class="folder-link " onclick="handleClickSelect(this,'{{ system_path }}', '{{ folder }}')"
                   ondblclick="handleDoubleClick('{{ system_path }}', '{{ folder }}')">
-                  <div class="item item_folder">
+                  <div class="item item_folder selectable-item">
                         <div class="row">
                               <i class="fa-solid fa-folder"></i>
                         </div>
@@ -94,9 +99,9 @@
             {% endfor %}
 
             {% for file, type in file_types.items() %}
-            <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
+            <a class="folder-link " onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
                   {% if type == "jpg" or type == "png" %}
-                  <div class="folder-link item item_img">
+                  <div class="folder-link item item_img selectable-item">
                         <div class="row">
                               <!-- <i class="fa-solid fa-image"></i> -->
 
@@ -112,7 +117,7 @@
                   </div>
 
                   {% elif type == "rar" or type == "zip" %}
-                  <div class="item item_rar">
+                  <div class="item item_rar selectable-item">
                         <div class="row">
                               <i class="fa-solid fa-file-zipper rar"></i>
                         </div>
@@ -121,7 +126,7 @@
                         </div>
                   </div>
                   {% elif type == "dll" %}
-                  <div class="item item_dll">
+                  <div class="item item_dll selectable-item">
                         <div class="row">
                               <i class="fa-regular fa-file-lines"></i>
                         </div>
@@ -130,7 +135,7 @@
                         </div>
                   </div>
                   {% elif type == "txt" %}
-                  <div class="item item_txt">
+                  <div class="item item_txt selectable-item">
                         <div class="row">
                               <i class="fa-regular fa-file-lines"></i>
                         </div>
@@ -139,7 +144,7 @@
                         </div>
                   </div>
                   {% elif type == "mp4" %}
-                  <div class="item item_video">
+                  <div class="item item_video selectable-item">
                         <div class="row">
                               <i class="fa-solid fa-file-video"></i>
                         </div>
@@ -148,7 +153,7 @@
                         </div>
                   </div>
                   {% else %}
-                  <div class="item item_orthor">
+                  <div class="item item_orthor selectable-item">
                         <div class="row">
                               <i class="fa-solid fa-file"></i>
                         </div>
