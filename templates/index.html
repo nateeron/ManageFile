@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>File Explorer</title>
+      <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+      <link rel="stylesheet" href="{{ url_for('static', filename='style_imageZoom.css') }}">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+      <script src="{{ url_for('static', filename='jquery-3.7.1.min.js') }}"></script>
+      <script src="{{ url_for('static', filename='script.js') }}"></script>
+      <script src="https://kit.fontawesome.com/cdbdc0e61f.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+      <div id="popup" class="popup">
+            <div class="popup-content">
+                  <span id="close" class="close">&times;</span>
+                  <h3>Enter Folder Name</h3>
+                  <input type="text" id="folderName" placeholder="Folder Name">
+                  <button id="createFolderBtn">Create Folder</button>
+            </div>
+      </div>
+      <select id="driveSelect" onchange="changePath()">
+            {% for drive in drives %}
+            <option value="{{ drive }}" {% if drive==system_path %}selected{% endif %}>{{ drive }}</option>
+            {% endfor %}
+      </select>
+      <div class="container-upload">
+            <h2>📂 Upload Files & Folders</h2>
+
+            <input class="custom-btn" type="file" id="fileInput" multiple webkitdirectory>
+            <button class="custom-btn" onclick="uploadFiles()">Upload</button>
+
+
+            <div class="flex d-none" id="progressContainer">
+                  <div class="progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                  </div>
+                  <span id="progressText">0%</span>
+            </div>
+
+
+      </div>
+      <div class="flex d-none" id="progress_zip" >
+            <p id="progress_text">Progress zip: 0%</p>
+            <progress id="progress_bar" value="0" max="100"></progress>
+      </div>
+      <div class="tabMenu">
+            <div style="width: 100%;">
+                  <label class="txt_path"> {{ system_path }}</label>
+                  <input type="text" class="d-none" id="system_path" value="{{ system_path }}">
+
+            </div>
+            <div class="bt_bar">
+                  <button class="custom-btn" id="NewFolder">+ New Folder</button>
+
+                  <button class="custom-btn d-none" id="selectDownload"
+                        onclick="downloadSelectedFiles()">Download</button>
+
+                  <button id="deleteBtn" class="custom-btn Delete d-none">Delete</button>
+
+            </div>
+            <div class="menu_left">
+
+                  <div class="item_menu">
+                        <i class="fa-solid fa-table-cells"></i>
+
+                  </div>
+                  <div class="item_menu">
+                        <i class="fa-regular fa-rectangle-list"></i>
+                  </div>
+                  <div class="item_menu">
+                        <i class="fa-solid fa-bars"></i>
+                  </div>
+            </div>
+      </div>
+
+      <div class="container" id="dropZone">
+
+            {% for folder in folders %}
+            <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ folder }}')"
+                  ondblclick="handleDoubleClick('{{ system_path }}', '{{ folder }}')">
+                  <div class="item item_folder">
+                        <div class="row">
+                              <i class="fa-solid fa-folder"></i>
+                        </div>
+                        <div class="row">
+                              <div class="txt"> {{ folder }}</div>
+                        </div>
+                  </div>
+            </a>
+            {% endfor %}
+
+            {% for file, type in file_types.items() %}
+            <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
+                  {% if type == "jpg" or type == "png" %}
+                  <div class="folder-link item item_img">
+                        <div class="row">
+                              <!-- <i class="fa-solid fa-image"></i> -->
+
+                              <div class="image-item">
+                                    <img onclick="openDialog(this.src)" src="./getimage/{{file}}?path={{system_path}}"
+                                          alt="Image">
+                              </div>
+                        </div>
+                        <div class="row">
+
+                              <div class="txt">{{ file }}</div>
+                        </div>
+                  </div>
+
+                  {% elif type == "rar" or type == "zip" %}
+                  <div class="item item_rar">
+                        <div class="row">
+                              <i class="fa-solid fa-file-zipper rar"></i>
+                        </div>
+                        <div class="row">
+                              <div class="txt">{{ file }}</div>
+                        </div>
+                  </div>
+                  {% elif type == "dll" %}
+                  <div class="item item_dll">
+                        <div class="row">
+                              <i class="fa-regular fa-file-lines"></i>
+                        </div>
+                        <div class="row">
+                              <div class="txt">{{ file }}</div>
+                        </div>
+                  </div>
+                  {% elif type == "txt" %}
+                  <div class="item item_txt">
+                        <div class="row">
+                              <i class="fa-regular fa-file-lines"></i>
+                        </div>
+                        <div class="row">
+                              <div class="txt">{{ file }}</div>
+                        </div>
+                  </div>
+                  {% elif type == "mp4" %}
+                  <div class="item item_video">
+                        <div class="row">
+                              <i class="fa-solid fa-file-video"></i>
+                        </div>
+                        <div class="row">
+                              <div class="txt">{{ file }}</div>
+                        </div>
+                  </div>
+                  {% else %}
+                  <div class="item item_orthor">
+                        <div class="row">
+                              <i class="fa-solid fa-file"></i>
+                        </div>
+                        <div class="row">
+                              <div class="txt">{{ file }}</div>
+                        </div>
+                  </div>
+
+                  {% endif %}
+            </a>
+            {% endfor %}
+            <!-- <i class="fa-solid fa-question"></i> -->
+
+      </div>
+
+      <style>
+            .boxZoom {
+                  width: 500px;
+            }
+      </style>
+      <div class="boxZoom">
+            <!-- Dialog overlay -->
+            <div class="dialog-overlay" id="dialog-contentz">
+                  <!-- Dialog content -->
+                  <div style="width: 100%;text-align: end;">
+                        <i class="fa-solid fa-xmark close-button"  onclick="closeDialog()"></i>
+                  </div>
+                  <div class="dialog-content" id="dialog-content"
+                        style="transform: scale(0.9); display: flex; justify-content: center; align-items: center; width: 100%;">
+                        <!-- Content inside the dialog goes here -->
+
+                        <img class="dialog-image" id="dialog-image" src="" alt="Zoomed Image" style="height: 100%;">
+                        <!-- Close button -->
+
+                  </div>
+                  <div class="percen" id="zoom-show">
+                        <span id="zoom-sizeimage">100%</span>
+                  </div>
+                  <div class="sizeimage">
+                        <span id="sizeimage"></span>
+                  </div>
+
+            </div>
+      </div>
+      <script>
+            function uploadFiles(files = null) {
+                  $('#progressContainer').removeClass('d-none')
+                  let fileInput = document.getElementById("fileInput");
+                  const system_path = $("#system_path").val();
+
+                  let selectedFiles = files || fileInput.files;
+                  console.log(selectedFiles)
+                  if (selectedFiles.length === 0) {
+                        alert("Please select files or folders to upload!");
+                        return;
+                  }
+
+                  let formData = new FormData();
+                  for (let i = 0; i < selectedFiles.length; i++) {
+                        formData.append("files", selectedFiles[i], selectedFiles[i].webkitRelativePath || selectedFiles[i].relativePath || selectedFiles[i].name);
+                  }
+                  formData.append("system_path", system_path)
+                  for (let [key, value] of formData.entries()) {
+                        console.log(`${key}:`, value);
+                  }
+                  let progressBar = document.getElementById("progressBar");
+                  let progressText = document.getElementById("progressText");
+                  progressBar.style.width = "0%";
+                  progressText.innerText = "0%";
+
+                  fetch("/upload/", {
+                        method: "POST",
+                        body: formData
+
+                  })
+                        .then(response => response.json())
+                        .then(data => {
+                              //let uploadedFilesList = document.getElementById("uploadedFiles");
+                              //data.files.forEach(file => {
+                              //      let listItem = document.createElement("li");
+                              //      listItem.textContent = file;
+                              //      uploadedFilesList.appendChild(listItem);
+                              //});
+
+                              progressBar.style.width = "100%";
+                              progressText.innerText = "100%";
+                              location.reload(true);
+                              $('#progressContainer').addClass('d-none')
+                              $('#progress_zip').addClass('d-none')
+
+                        }).catch(error => {
+                              console.error("Upload failed:", error)
+                              $('#progressContainer').addClass('d-none')
+                              $('#progress_zip').addClass('d-none')
+                        });
+            }
+
+            document.getElementById("dropZone").addEventListener("drop", function (event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+
+                  let items = event.dataTransfer.items;
+                  let files = [];
+
+                  function readDirectory(entry, path = "") {
+                        if (entry.isFile) {
+                              entry.file(file => {
+                                    file.relativePath = path + file.name; // Preserve folder structure
+                                    files.push(file);
+                              });
+                        } else if (entry.isDirectory) {
+                              let dirReader = entry.createReader();
+                              dirReader.readEntries(entries => {
+                                    entries.forEach(subEntry => readDirectory(subEntry, path + entry.name + "/"));
+                              });
+                        }
+                  }
+
+                  for (let item of items) {
+                        let entry = item.webkitGetAsEntry();
+                        if (entry) {
+                              readDirectory(entry);
+                        }
+                  }
+
+                  setTimeout(() => {
+                        console.log("Files:", files);
+                        uploadFiles(files);
+                  }, 1000);
+            });
+
+            document.getElementById("dropZone").addEventListener("dragover", function (event) {
+                  event.preventDefault();
+                  event.stopPropagation();
+            });
+
+            // Listen for progress updates from server
+            socket.on("upload_progress", function (data) {
+                  let progressBar = document.getElementById("progressBar");
+                  let progressText = document.getElementById("progressText");
+                  progressBar.style.width = data.progress + "%";
+                  progressText.innerText = data.progress + "%";
+            });
+
+
+            $("#deleteBtn").click(function () {
+                  const selectedItems_ = [...selectedItems, ...selectedfile];
+                  let strName = ""
+                  for (let s of selectedItems_) {
+                        strName += s
+                  }
+                  let pathToDelete = strName // $("#pathInput").val(); // Get path from input field
+
+                  if (!pathToDelete) {
+                        alert("Please enter a file/folder path.");
+                        return;
+                  }
+                  const system_path = $("#system_path").val();
+
+                  console.log("system_path", system_path)
+                  console.log("Delete", selectedItems_)
+                  // Show confirmation popup
+                  if (confirm(`Are you sure you want to delete: ${pathToDelete}?`)) {
+
+                        const requestBody = {
+                              system_path: system_path,
+                              folders: selectedItems_
+                        };
+                        fetch("/delete", {
+                              method: "POST",
+                              body: JSON.stringify(requestBody),
+                              headers: {
+                                    "Content-Type": "application/json", // Specify the content type
+                              },
+                        })
+                              .then((response) => {
+                                    // Check if the response status is ok (200-299)
+                                    if (!response.ok) {
+                                          throw new Error(`Error: ${response.statusText}`);
+                                    }
+                                    return response.json(); // Parse the JSON response
+                              })
+                              .then((data) => {
+                                    // Assuming the server returns a message in the response
+                                    // alert(data.message);
+                                    location.reload(true);
+                              })
+                              .catch((error) => {
+                                    // Log any error that occurs during the request
+                                    console.error("Error:", error);
+                                    alert("There was an error processing your request.");
+                              });
+
+                  }
+            });
+
+            $("#NewFolder").click(function () {
+                  $("#popup").css('display', 'flex');
+            });
+            $("#close").click(function () {
+                  $("#popup").css('display', 'none');
+            });
+
+            $("#createFolderBtn").click(function () {
+                  let folderName = $("#folderName").val();  // Get folder name from input field
+                  let path = $("#system_path").val();   // Define the base path where the folder will be created
+
+                  if (!folderName) {
+                        alert("Please enter a folder name!");
+                        return;
+                  }
+
+                  // Send POST request to the server to create the folder
+                  $.ajax({
+                        url: '/create_folder',  // Adjust the API endpoint as needed
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                              system_path: path,
+                              folder_name: folderName
+                        }),
+                        success: function (response) {
+                              //  alert(response.message);  // Show success message
+                              $("#popup").hide();  // Close the popup after folder creation
+                              $("#folderName").val("")
+                              location.reload(true);
+                              //
+                        },
+                        error: function (xhr, status, error) {
+                              alert("Error creating folder: " + xhr.responseJSON.error);  // Show error message
+                        }
+                  });
+            });
+      </script>
+
+</body>
+<script src="{{ url_for('static', filename='java_imagezoom.js') }}"></script>
+
+</html>
