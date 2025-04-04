@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask API Button Click Count</title>
+</head>
+<body>
+    <h1>Click Count: <span id="count">{{ click_count }}</span></h1>
+    <button id="increment-btn">Click Me</button>
+
+    <script>
+        // Fetch the current click count and update the page
+        const button = document.getElementById('increment-btn');
+        const countSpan = document.getElementById('count');
+
+        button.addEventListener('click', function() {
+            // Make a GET request to increment the count
+            fetch('/increment')
+                .then(response => response.json())
+                .then(data => {
+                    // Update the UI with the new count
+                    countSpan.textContent = data.click_count;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

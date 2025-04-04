@@ -20,8 +20,18 @@ def check_System():
         # List all available drives (C:, D:, E:, etc.)
         drives = [f"{d}:/" for d in string.ascii_uppercase if os.path.exists(f"{d}:/")]
         return drives  # Return list of drives
-    elif "Linux" in platform.uname():
-        return ["/storage/emulated/0"]  # Android Internal Storage
+    elif system_info == "Linux":
+        if "Android" in platform.uname():  # Checking for Android system
+            return ["/storage/emulated/0"]  # Android Internal Storage
+        else:
+            # For Ubuntu/Linux, list all mounted file systems
+            mounts = []
+            with os.popen('mount -v') as f:
+                for line in f.readlines():
+                    if "on" in line:  # Identify mount points
+                        parts = line.split()
+                        mounts.append(parts[2])  # The mount point is the third element
+            return mounts
     else:
         return [os.getcwd()]  # Default to current working directory
 
@@ -333,7 +343,7 @@ def getimage(filename):
 
 if __name__ == '__main__':
     # app.run(debug=True, host="0.0.0.0", port=1298)
-    socketio.run(app, debug=True, host="0.0.0.0", port=1298)
-
+    #socketio.run(app, debug=True, host="0.0.0.0", port=80)
+    socketio.run(app, host="0.0.0.0", port=1298, debug=False ,allow_unsafe_werkzeug=True)
 # python -m flask run --host=0.0.0.0 --port=1298 --debug
 
