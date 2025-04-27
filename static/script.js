@@ -3,6 +3,7 @@ let selectedfile = [];
 let wail_select = false;
 
 function handleClickSelect(e, systemPath, folderName, i = 0) {
+    console.log("ssssssss")
     let $element = $(e); // Convert to jQuery object
     if (wail_select) {
         // Add checkmark when wail_select is true
@@ -39,7 +40,14 @@ function handleDoubleClick(systemPath, folderName) {
     // Handle double-click (e.g., navigate to folder)
     window.location.href = "/?path=" + systemPath + "/" + folderName;
 }
-
+function selectdive(e) {
+    const parent = $(e).closest('.menu_left');
+    parent.find('.i-menu').removeClass('active');
+    $(e).addClass('active');
+const selectedPath = $(e).text().trim();
+console.log(selectedPath)
+    window.location.href = "/?path=" + encodeURIComponent(selectedPath);
+}
 function downloadSelectedFiles() {
     const len = selectedItems.length;
     const lenfile = selectedfile.length;

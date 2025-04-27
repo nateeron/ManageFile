@@ -17,9 +17,7 @@ function resetsize() {
 
 
 function openDialog(src) {
-    if(wail_select){
-        return ""
-    }
+   
     resetsize();
     dialogContent.style.transform = `scale(0.9)`;
 

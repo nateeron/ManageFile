@@ -35,9 +35,13 @@ select {
     margin-bottom: 10px;
     padding: 5px;
 }
-
-.container {
+.container{
+    display: flex;
+    gap: 10px;
+}
+.box-item-drive {
     display: grid;
+    width: 100%;
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     gap: 20px;
     min-height: 300px;
@@ -157,7 +161,7 @@ select {
       background: #1f1f1f;
       cursor: pointer;
 }
-.menu_left {
+.bar_MenuView {
     width: 109px;
     display: flex;
     justify-content: space-evenly;
@@ -171,6 +175,29 @@ select {
     border-radius: 5px; */
 }
 
+.menu_left{
+    width: 200px;
+    border-radius: 15px;
+    background: #454545;
+    padding: 8px;
+}
+.menu_left .i-menu{
+    background: #696868;
+    border-radius: 15px;
+    margin: 8px;
+    height: 32px;
+    display: flex
+;
+    align-items: center;
+    padding: 0 15px;
+}
+.menu_left .i-menu.active{
+    background: #303030  !important;
+}
+.menu_left .i-menu:hover{
+    cursor: pointer;
+    background: #181818a4;
+}
 .is_select{
   
     background-color: rgb(43 43 43);

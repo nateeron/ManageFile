@@ -3,8 +3,10 @@
 - เข้าถึงไฟร์ สามารถ Download Upload File Folder show image zoom and play video
 
 RUN
+python app.py
 python -m flask run --host=0.0.0.0 --port=1298 --debug
 
+pip install -r requirements.txt
 
 
 *** Ubuntu ***

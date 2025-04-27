@@ -344,6 +344,7 @@ def getimage(filename):
 if __name__ == '__main__':
     # app.run(debug=True, host="0.0.0.0", port=1298)
     #socketio.run(app, debug=True, host="0.0.0.0", port=80)
-    socketio.run(app, host="0.0.0.0", port=1298, debug=False ,allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=1298, debug=True ,allow_unsafe_werkzeug=True)
 # python -m flask run --host=0.0.0.0 --port=1298 --debug
+
 
