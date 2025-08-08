@@ -1,881 +1,1669 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>File Explorer</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_imageZoom.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='style_Drag_Coverage.css') }}" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="{{ url_for('static', filename='jquery-3.7.1.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script src="{{ url_for('static', filename='script_Drag_Coverage.js') }}"></script>
-    <!-- CodeMirror for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sql/sql.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/ruby/ruby.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/rust/rust.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/swift/swift.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/scala/scala.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/jsx/jsx.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/dockerfile/dockerfile.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/toml/toml.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/shell/shell.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/powershell/powershell.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/r/r.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/octave/octave.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/perl/perl.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/haskell/haskell.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clojure/clojure.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/erlang/erlang.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/elm/elm.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/nim/nim.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/zig/zig.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/v/v.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/crystal/crystal.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/dart/dart.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/coffeescript/coffeescript.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sass/sass.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/stylus/stylus.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/gas/gas.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/fortran/fortran.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/pascal/pascal.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/basic/basic.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/vb/vb.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/autohotkey/autohotkey.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/autoit/autoit.min.js"></script>
-    <script src="https://kit.fontawesome.com/cdbdc0e61f.js" crossorigin="anonymous"></script>
-  </head>
 
-  <body>
-    <div class="selection-box"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Explorer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_imageZoom.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_Drag_Coverage.css') }}" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script src="{{ url_for('static', filename='jquery-3.7.1.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script src="{{ url_for('static', filename='script_Drag_Coverage.js') }}"></script>
+  <!-- CodeMirror for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sql/sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/php/php.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/ruby/ruby.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/go/go.min.js"></script>
+  <!-- Removed rust.min.js due to defineSimpleMode compatibility issues -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/swift/swift.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/scala/scala.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/jsx/jsx.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <!-- Removed dockerfile.min.js due to defineSimpleMode compatibility issues -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/toml/toml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/shell/shell.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/powershell/powershell.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/r/r.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/octave/octave.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/perl/perl.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/lua/lua.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/haskell/haskell.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clojure/clojure.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/erlang/erlang.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/elm/elm.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/nim/nim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/zig/zig.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/v/v.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/crystal/crystal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/dart/dart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/coffeescript/coffeescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sass/sass.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/stylus/stylus.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/gas/gas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/fortran/fortran.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/pascal/pascal.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/basic/basic.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/vb/vb.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/autohotkey/autohotkey.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/autoit/autoit.min.js"></script>
+  <script src="https://kit.fontawesome.com/cdbdc0e61f.js" crossorigin="anonymous"></script>
+</head>
 
-    <div id="popup" class="popup">
-      <div class="popup-content">
-        <span id="close" class="close">&times;</span>
-        <h3>Enter Folder Name</h3>
-        <input type="text" id="folderName" placeholder="Folder Name" />
-        <button class="custom-btn" id="createFolderBtn">Create Folder</button>
+<body>
+  <div class="selection-box"></div>
+
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <span id="close" class="close">&times;</span>
+      <h3>Enter Folder Name</h3>
+      <input type="text" id="folderName" placeholder="Folder Name" />
+      <button class="custom-btn" id="createFolderBtn">Create Folder</button>
+    </div>
+  </div>
+  <div class="container-upload">
+    <h2>📂 Upload Files & Folders</h2>
+
+    <input class="custom-btn" type="file" accept="video/*" id="fileInput" multiple />
+    <button class="custom-btn" onclick="uploadFiles()">Upload</button>
+
+    <div class="flex d-none" id="progressContainer">
+      <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <span id="progressText">0%</span>
+    </div>
+  </div>
+  <div class="flex d-none" id="progress_zip">
+    <p id="progress_text">Progress zip: 0%</p>
+    <progress id="progress_bar" value="0" max="100"></progress>
+  </div>
+  <div class="tabMenu">
+    <div style="width: 100%;">
+      <label class="txt_path">{{ system_path }}</label>
+      <input type="text" class="d-none" id="system_path" value="{{ system_path }}" />
+    </div>
+    <div class="bt_bar">
+      <button class="custom-btn" id="NewFolder">+ New Folder</button>
+
+      <button class="custom-btn d-none" id="selectDownload" onclick="downloadSelectedFiles()">Download</button>
+
+      <button id="deleteBtn" class="custom-btn Delete d-none">Delete</button>
+    </div>
+    <div class="bar_MenuView">
+      <div class="item_menu">
+        <i class="fa-solid fa-table-cells"></i>
+      </div>
+      <div class="item_menu">
+        <i class="fa-regular fa-rectangle-list"></i>
+      </div>
+      <div class="item_menu">
+        <i class="fa-solid fa-bars"></i>
       </div>
     </div>
-    <div class="container-upload">
-      <h2>📂 Upload Files & Folders</h2>
+  </div>
 
-      <input class="custom-btn" type="file" accept="video/*" id="fileInput" multiple />
-      <button class="custom-btn" onclick="uploadFiles()">Upload</button>
-
-      <div class="flex d-none" id="progressContainer">
-        <div class="progress">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <span id="progressText">0%</span>
-      </div>
+  <div class="container">
+    <div class="menu_left" id="driveSelect">
+      {% for drive in drives %}
+      <div class="i-menu {% if drive == system_path %}active{% endif %}" onclick="selectdive(this)">{{ drive }}</div>
+      {% endfor %}
     </div>
-    <div class="flex d-none" id="progress_zip">
-      <p id="progress_text">Progress zip: 0%</p>
-      <progress id="progress_bar" value="0" max="100"></progress>
-    </div>
-    <div class="tabMenu">
-      <div style="width: 100%;">
-        <label class="txt_path">{{ system_path }}</label>
-        <input type="text" class="d-none" id="system_path" value="{{ system_path }}" />
-      </div>
-      <div class="bt_bar">
-        <button class="custom-btn" id="NewFolder">+ New Folder</button>
-
-        <button class="custom-btn d-none" id="selectDownload" onclick="downloadSelectedFiles()">Download</button>
-
-        <button id="deleteBtn" class="custom-btn Delete d-none">Delete</button>
-      </div>
-      <div class="bar_MenuView">
-        <div class="item_menu">
-          <i class="fa-solid fa-table-cells"></i>
-        </div>
-        <div class="item_menu">
-          <i class="fa-regular fa-rectangle-list"></i>
-        </div>
-        <div class="item_menu">
-          <i class="fa-solid fa-bars"></i>
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <div class="menu_left" id="driveSelect">
-        {% for drive in drives %}
-          <div class="i-menu {% if drive == system_path %}active{% endif %}" onclick="selectdive(this)">{{ drive }}</div>
-        {% endfor %}
-      </div>
-      <div style="width: 100%; height: 100%;">
+    <div style="width: 100%; height: 100%;">
       <div class="box-item-drive drag-area" id="dropZone">
         {% for folder in folders %}
-          <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ folder }}')" ondblclick="handleDoubleClick('{{ system_path }}', '{{ folder }}')">
-            <div class="item item_folder selectable-item">
-              <div class="row">
-                <i class="fa-solid fa-folder"></i>
-              </div>
-              <div class="row">
-                <div class="txt">{{ folder }}</div>
-              </div>
+        <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ folder }}')"
+          ondblclick="handleDoubleClick('{{ system_path }}', '{{ folder }}')">
+          <div class="item item_folder selectable-item">
+            <div class="row">
+              <i class="fa-solid fa-folder"></i>
             </div>
-          </a>
+            <div class="row">
+              <div class="txt">{{ folder }}</div>
+            </div>
+          </div>
+        </a>
         {% endfor %}
 
         {% for file, type in file_types.items() %}
-          <a class="folder-link" ondblclick="handleTextFileDoubleClick('{{ system_path }}', '{{ file }}', '{{ type }}')" onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
-            {% if type == 'jpg' or type == 'png' %}
-              <div class="folder-link item item_img selectable-item">
-                <div class="row">
-                  <!-- <i class="fa-solid fa-image"></i> -->
+        <a class="folder-link" ondblclick="handleTextFileDoubleClick('{{ system_path }}', '{{ file }}', '{{ type }}')"
+          onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
+          {% if type == 'jpg' or type == 'png' %}
+          <div class="folder-link item item_img selectable-item">
+            <div class="row">
+              <!-- <i class="fa-solid fa-image"></i> -->
 
-                  <div class="image-item">
-                    <img onclick="openDialog(this.src)" src="./getimage/{{ file }}?path={{ system_path }}" alt="Image" />
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="txt">{{ file }}</div>
-                </div>
+              <div class="image-item">
+                <img onclick="openDialog(this.src)" src="./getimage/{{ file }}?path={{ system_path }}" alt="Image" />
               </div>
-            {% elif type == 'rar' or type == 'zip' %}
-              <div class="item item_rar selectable-item">
-                <div class="row">
-                  <i class="fa-solid fa-file-zipper rar"></i>
-                </div>
-                <div class="row">
-                  <div class="txt">{{ file }}</div>
-                </div>
-              </div>
-            {% elif type == 'dll' %}
-              <div class="item item_dll selectable-item">
-                <div class="row">
-                  <i class="fa-regular fa-file-lines"></i>
-                </div>
-                <div class="row">
-                  <div class="txt">{{ file }}</div>
-                </div>
-              </div>
-                         {% elif type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' or type == 'config' or type == 'log' or type == 'cs' or type == 'sql' or type == 'xml' or type == 'bat' or type == 'css' or type == 'php' or type == 'java' or type == 'cpp' or type == 'c' or type == 'rb' or type == 'go' or type == 'rs' or type == 'swift' or type == 'kt' or type == 'scala' or type == 'ts' or type == 'jsx' or type == 'tsx' or type == 'vue' or type == 'svelte' or type == 'dockerfile' or type == 'yml' or type == 'yaml' or type == 'toml' or type == 'md' or type == 'sh' or type == 'ps1' or type == 'r' or type == 'm' or type == 'pl' or type == 'lua' or type == 'hs' or type == 'fs' or type == 'clj' or type == 'ex' or type == 'elm' or type == 'nim' or type == 'zig' or type == 'v' or type == 'cr' or type == 'dart' or type == 'coffee' or type == 'less' or type == 'sass' or type == 'scss' or type == 'styl' or type == 'asm' or type == 's' or type == 'f90' or type == 'pas' or type == 'bas' or type == 'vbs' or type == 'ahk' or type == 'au3' or type == 'psm1' or type == 'psd1' or type == 'ps1xml' or type == 'psc1' or type == 'pssc' or type == 'cdxml' or type == 'psrc' or type == 'psm1' or type == 'psd1' or type == 'ps1xml' or type == 'psc1' or type == 'pssc' or type == 'cdxml' or type == 'psrc' %}
-              <div class="item item_txt selectable-item">
-                <div class="row">
-                  <i class="fa-regular fa-file-lines"></i>
-                </div>
-                <div class="row">
-                  <div class="txt">{{ file }}</div>
-                </div>
-              </div>
-            {% elif type == 'mp4' %}
-              <div class="item item_video selectable-item">
-                <div class="row">
-                  <i class="fa-solid fa-file-video"></i>
-                </div>
-                <div class="row">
-                  <div class="txt">{{ file }}</div>
-                </div>
-              </div>
-            {% else %}
-              <div class="item item_orthor selectable-item">
-                <div class="row">
-                  <i class="fa-solid fa-file"></i>
-                </div>
-                <div class="row">
-                  <div class="txt">{{ file }}</div>
-                </div>
-              </div>
-            {% endif %}
-          </a>
+            </div>
+            <div class="row">
+              <div class="txt">{{ file }}</div>
+            </div>
+          </div>
+          {% elif type == 'rar' or type == 'zip' %}
+          <div class="item item_rar selectable-item">
+            <div class="row">
+              <i class="fa-solid fa-file-zipper rar"></i>
+            </div>
+            <div class="row">
+              <div class="txt">{{ file }}</div>
+            </div>
+          </div>
+          {% elif type == 'dll' %}
+          <div class="item item_dll selectable-item">
+            <div class="row">
+              <i class="fa-regular fa-file-lines"></i>
+            </div>
+            <div class="row">
+              <div class="txt">{{ file }}</div>
+            </div>
+          </div>
+          {% elif type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' or
+          type == 'config' or type == 'log' or type == 'cs' or type == 'sql' or type == 'xml' or type == 'bat' or type
+          == 'css' or type == 'php' or type == 'java' or type == 'cpp' or type == 'c' or type == 'rb' or type == 'go' or
+          type == 'rs' or type == 'swift' or type == 'kt' or type == 'scala' or type == 'ts' or type == 'jsx' or type ==
+          'tsx' or type == 'vue' or type == 'svelte' or type == 'dockerfile' or type == 'yml' or type == 'yaml' or type
+          == 'toml' or type == 'md' or type == 'sh' or type == 'ps1' or type == 'r' or type == 'm' or type == 'pl' or
+          type == 'lua' or type == 'hs' or type == 'fs' or type == 'clj' or type == 'ex' or type == 'elm' or type ==
+          'nim' or type == 'zig' or type == 'v' or type == 'cr' or type == 'dart' or type == 'coffee' or type == 'less'
+          or type == 'sass' or type == 'scss' or type == 'styl' or type == 'asm' or type == 's' or type == 'f90' or type
+          == 'pas' or type == 'bas' or type == 'vbs' or type == 'ahk' or type == 'au3' or type == 'psm1' or type ==
+          'psd1' or type == 'ps1xml' or type == 'psc1' or type == 'pssc' or type == 'cdxml' or type == 'psrc' or type ==
+          'psm1' or type == 'psd1' or type == 'ps1xml' or type == 'psc1' or type == 'pssc' or type == 'cdxml' or type ==
+          'psrc' %}
+          <div class="item item_txt selectable-item">
+            <div class="row">
+              <i class="fa-regular fa-file-lines"></i>
+            </div>
+            <div class="row">
+              <div class="txt">{{ file }}</div>
+            </div>
+          </div>
+          {% elif type == 'mp4' %}
+          <div class="item item_video selectable-item">
+            <div class="row">
+              <i class="fa-solid fa-file-video"></i>
+            </div>
+            <div class="row">
+              <div class="txt">{{ file }}</div>
+            </div>
+          </div>
+          {% else %}
+          <div class="item item_orthor selectable-item">
+            <div class="row">
+              <i class="fa-solid fa-file"></i>
+            </div>
+            <div class="row">
+              <div class="txt">{{ file }}</div>
+            </div>
+          </div>
+          {% endif %}
+        </a>
         {% endfor %}
         <!-- <i class="fa-solid fa-question"></i> -->
       </div>
     </div>
   </div>
 
-    <style>
-      .boxZoom {
-        width: 500px;
-      }
-      .text-editor-dialog {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      /* Force overlay color for the dialog via ID with !important */
-      #textEditorDialog {
-        background-color: rgba(0, 0, 0, 0.8) !important;
-        z-index: 9999 !important;
-      }
-      /* Force inner elements to use intended colors */
-      #textEditorDialog .text-editor-content { background-color: #2d2d2d !important; }
-      #textEditorDialog .text-editor-header { background-color: #1e1e1e !important; border-bottom: 1px solid #444 !important; }
-      #textEditorDialog .text-editor-code-container { background-color: #1e1e1e !important; border: 1px solid #444 !important; }
-      #textEditorDialog .text-editor-line-numbers { background-color: #252526 !important; color: #858585 !important; border-right: 1px solid #444 !important; }
-      #textEditorDialog .text-editor-textarea { background-color: #1e1e1e !important; color: #d4d4d4 !important; }
-      .text-editor-content {
-        background-color: #2d2d2d;
-        border-radius: 8px;
-        width: 90%;
-        height: 90%;
-        display: flex;
-        flex-direction: column;
-        color: white;
-      }
-      .text-editor-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 20px;
-        border-bottom: 1px solid #444;
-        background-color: #1e1e1e;
-        border-radius: 8px 8px 0 0;
-      }
-      .text-editor-title {
-        font-size: 16px;
-        font-weight: bold;
-      }
-      .text-editor-close {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-        padding: 5px;
-      }
-             .text-editor-body {
-         flex: 1;
-         display: flex;
-         flex-direction: column;
-         padding: 10px;
-         overflow: auto;
-       }
-       .text-editor-code-container {
-         flex: 1;
-         display: flex;
-         background-color: #1e1e1e;
-         border: 1px solid #444;
-         border-radius: 4px;
-         overflow: hidden;
-       }
-       /* CodeMirror customization for VSCode-like appearance */
-       .CodeMirror {
-         height: 100% !important;
-         font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
-         font-size: 14px !important;
-         line-height: 1.5 !important;
-         background-color: #1e1e1e !important;
-         color: #d4d4d4 !important;
-       }
-       .CodeMirror-gutters {
-         background-color: #252526 !important;
-         border-right: 1px solid #444 !important;
-         color: #858585 !important;
-       }
-       .CodeMirror-linenumber {
-         color: #858585 !important;
-       }
-       .CodeMirror-cursor {
-         border-left: 2px solid #007acc !important;
-       }
-       .CodeMirror-selected {
-         background-color: #264f78 !important;
-       }
-       /* VSCode Dark+ Theme Colors */
-       .cm-s-monokai .cm-keyword { color: #569cd6 !important; }
-       .cm-s-monokai .cm-string { color: #ce9178 !important; }
-       .cm-s-monokai .cm-comment { color: #6a9955 !important; }
-       .cm-s-monokai .cm-def { color: #dcdcaa !important; }
-       .cm-s-monokai .cm-variable { color: #9cdcfe !important; }
-       .cm-s-monokai .cm-number { color: #b5cea8 !important; }
-       .cm-s-monokai .cm-operator { color: #d4d4d4 !important; }
-       .cm-s-monokai .cm-property { color: #9cdcfe !important; }
-       .cm-s-monokai .cm-tag { color: #569cd6 !important; }
-       .cm-s-monokai .cm-attribute { color: #9cdcfe !important; }
-       .cm-s-monokai .cm-atom { color: #569cd6 !important; }
-       .cm-s-monokai .cm-builtin { color: #4ec9b0 !important; }
-       .text-editor-line-numbers {
-         background-color: #252526;
-         color: #858585;
-         padding: 10px 8px;
-         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-         font-size: 14px;
-         line-height: 1.5;
-         text-align: right;
-         border-right: 1px solid #444;
-         min-width: 50px;
-         user-select: none;
-         overflow-y: hidden;
-       }
-       .text-editor-textarea {
-         flex: 1;
-         background-color: #1e1e1e;
-         color: #d4d4d4;
-         border: none;
-         padding: 10px;
-         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-         font-size: 14px;
-         line-height: 1.5;
-         resize: none;
-         outline: none;
-         tab-size: 4;
-         -moz-tab-size: 4;
-         -webkit-tab-size: 4;
-       }
-      .text-editor-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        padding: 10px 0;
-      }
-      .text-editor-btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-      .text-editor-btn-save {
-        background-color: #007acc;
-        color: white;
-      }
-      .text-editor-btn-cancel {
-        background-color: #666;
-        color: white;
-      }
-      .text-editor-btn:hover {
-        opacity: 0.8;
-      }
-      
-             /* VSCode Dark+ Theme Syntax Highlighting */
-       .syntax-python {
-         color: #d4d4d4;
-       }
-       .syntax-python .keyword { color: #569cd6; }
-       .syntax-python .string { color: #ce9178; }
-       .syntax-python .comment { color: #6a9955; }
-       .syntax-python .function { color: #dcdcaa; }
-       .syntax-python .class { color: #4ec9b0; }
-       .syntax-python .number { color: #b5cea8; }
-       .syntax-python .operator { color: #d4d4d4; }
-       
-       .syntax-html {
-         color: #d4d4d4;
-       }
-       .syntax-html .tag { color: #569cd6; }
-       .syntax-html .attribute { color: #9cdcfe; }
-       .syntax-html .string { color: #ce9178; }
-       .syntax-html .comment { color: #6a9955; }
-       .syntax-html .doctype { color: #569cd6; }
-       
-       .syntax-javascript {
-         color: #d4d4d4;
-       }
-       .syntax-javascript .keyword { color: #569cd6; }
-       .syntax-javascript .string { color: #ce9178; }
-       .syntax-javascript .comment { color: #6a9955; }
-       .syntax-javascript .function { color: #dcdcaa; }
-       .syntax-javascript .number { color: #b5cea8; }
-       .syntax-javascript .operator { color: #d4d4d4; }
-       .syntax-javascript .boolean { color: #569cd6; }
-       .syntax-javascript .null { color: #569cd6; }
-       
-       .syntax-json {
-         color: #d4d4d4;
-       }
-       .syntax-json .key { color: #9cdcfe; }
-       .syntax-json .string { color: #ce9178; }
-       .syntax-json .number { color: #b5cea8; }
-       .syntax-json .boolean { color: #569cd6; }
-       .syntax-json .null { color: #569cd6; }
-       
-       .syntax-ini {
-         color: #d4d4d4;
-       }
-       .syntax-ini .section { color: #569cd6; }
-       .syntax-ini .key { color: #9cdcfe; }
-       .syntax-ini .string { color: #ce9178; }
-       .syntax-ini .comment { color: #6a9955; }
-       
-               .syntax-text {
-          color: #d4d4d4;
-        }
-        
-        /* Additional syntax highlighting for new file types */
-        .syntax-csharp {
-          color: #d4d4d4;
-        }
-        .syntax-csharp .keyword { color: #569cd6; }
-        .syntax-csharp .string { color: #ce9178; }
-        .syntax-csharp .comment { color: #6a9955; }
-        .syntax-csharp .function { color: #dcdcaa; }
-        .syntax-csharp .class { color: #4ec9b0; }
-        .syntax-csharp .number { color: #b5cea8; }
-        .syntax-csharp .operator { color: #d4d4d4; }
-        .syntax-csharp .namespace { color: #569cd6; }
-        .syntax-csharp .using { color: #569cd6; }
-        
-        .syntax-sql {
-          color: #d4d4d4;
-        }
-        .syntax-sql .keyword { color: #569cd6; }
-        .syntax-sql .string { color: #ce9178; }
-        .syntax-sql .comment { color: #6a9955; }
-        .syntax-sql .function { color: #dcdcaa; }
-        .syntax-sql .number { color: #b5cea8; }
-        .syntax-sql .operator { color: #d4d4d4; }
-        .syntax-sql .table { color: #4ec9b0; }
-        .syntax-sql .column { color: #9cdcfe; }
-        
-        .syntax-config {
-          color: #d4d4d4;
-        }
-        .syntax-config .section { color: #569cd6; }
-        .syntax-config .key { color: #9cdcfe; }
-        .syntax-config .string { color: #ce9178; }
-        .syntax-config .comment { color: #6a9955; }
-        
-        .syntax-log {
-          color: #d4d4d4;
-        }
-                 .syntax-log .timestamp { color: #569cd6; }
-         .syntax-log .level { color: #ce9178; }
-         .syntax-log .message { color: #d4d4d4; }
-         
-         .syntax-batch {
-           color: #d4d4d4;
-         }
-         .syntax-batch .keyword { color: #569cd6; }
-         .syntax-batch .string { color: #ce9178; }
-         .syntax-batch .comment { color: #6a9955; }
-         .syntax-batch .function { color: #dcdcaa; }
-         .syntax-batch .variable { color: #9cdcfe; }
-         .syntax-batch .number { color: #b5cea8; }
-         .syntax-batch .operator { color: #d4d4d4; }
-                   .syntax-batch .command { color: #4ec9b0; }
-          
-          .syntax-css {
-            color: #d4d4d4;
-          }
-          .syntax-css .selector { color: #569cd6; }
-          .syntax-css .property { color: #9cdcfe; }
-          .syntax-css .string { color: #ce9178; }
-          .syntax-css .comment { color: #6a9955; }
-          .syntax-css .number { color: #b5cea8; }
-          .syntax-css .unit { color: #569cd6; }
-          .syntax-css .function { color: #dcdcaa; }
-          .syntax-css .color { color: #ce9178; }
-          .syntax-css .keyword { color: #569cd6; }
-       
-       /* Code editor specific styles */
-       .code-editor-mode .text-editor-title {
-         color: #007acc;
-       }
-       .code-editor-mode .text-editor-header {
-         background-color: #2d2d30;
-         border-bottom: 2px solid #007acc;
-       }
-       .code-editor-mode .text-editor-code-container {
-         border: 1px solid #007acc;
-       }
-       .code-editor-mode .text-editor-line-numbers {
-         background-color: #252526;
-         color: #007acc;
-         border-right: 1px solid #007acc;
-       }
-      
-      .text-editor-status {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 10px;
-        background-color: #1e1e1e;
-        border-top: 1px solid #444;
-        font-size: 12px;
-        color: #888;
-      }
-    </style>
-    <div class="boxZoom">
-      <!-- Dialog overlay -->
-      <div class="dialog-overlay" id="dialog-contentz">
-        <!-- Dialog content -->
-        <div style="width: 100%;text-align: end;">
-          <i class="fa-solid fa-xmark close-button" onclick="closeDialog()"></i>
-        </div>
-        <div class="dialog-content" id="dialog-content" style="transform: scale(0.9); display: flex; justify-content: center; align-items: center; width: 100%;">
-          <!-- Content inside the dialog goes here -->
+  <style>
+    .boxZoom {
+      width: 500px;
+    }
 
-          <img class="dialog-image" id="dialog-image" src="" alt="Zoomed Image" style="height: 100%;" />
-          <!-- Close button -->
-        </div>
-        <div class="percen" id="zoom-show">
-          <span id="zoom-sizeimage">100%</span>
-        </div>
-        <div class="sizeimage">
-          <span id="sizeimage"></span>
+    .text-editor-dialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    /* Force overlay color for the dialog via ID with !important */
+    #textEditorDialog {
+      background-color: rgba(0, 0, 0, 0.8) !important;
+      z-index: 9999 !important;
+    }
+
+    /* Force inner elements to use intended colors */
+    #textEditorDialog .text-editor-content {
+      background-color: #2d2d2d !important;
+    }
+
+    #textEditorDialog .text-editor-header {
+      background-color: #1e1e1e !important;
+      border-bottom: 1px solid #444 !important;
+    }
+
+    #textEditorDialog .text-editor-code-container {
+      background-color: #1e1e1e !important;
+      border: 1px solid #444 !important;
+    }
+
+    #textEditorDialog .text-editor-line-numbers {
+      background-color: #252526 !important;
+      color: #858585 !important;
+      border-right: 1px solid #444 !important;
+    }
+
+    #textEditorDialog .text-editor-textarea {
+      background-color: #1e1e1e !important;
+      color: #d4d4d4 !important;
+    }
+
+    .text-editor-content {
+      background-color: #2d2d2d;
+      border-radius: 8px;
+      width: 90%;
+      height: 90%;
+      display: flex;
+      flex-direction: column;
+      color: white;
+    }
+
+    .text-editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      border-bottom: 1px solid #444;
+      background-color: #1e1e1e;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .text-editor-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .text-editor-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .text-editor-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      overflow: auto;
+    }
+
+    .text-editor-code-container {
+      flex: 1;
+      display: flex;
+      background-color: #1e1e1e;
+      border: 1px solid #444;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* CodeMirror customization for VSCode-like appearance */
+    .CodeMirror {
+      height: 100% !important;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+      background-color: #1e1e1e !important;
+      color: #d4d4d4 !important;
+    }
+
+    .CodeMirror-gutters {
+      background-color: #252526 !important;
+      border-right: 1px solid #444 !important;
+      color: #858585 !important;
+    }
+
+    .CodeMirror-linenumber {
+      color: #858585 !important;
+    }
+
+    .CodeMirror-cursor {
+      border-left: 2px solid #007acc !important;
+    }
+
+    .CodeMirror-selected {
+      background-color: #264f78 !important;
+    }
+
+    /* VSCode Dark+ Theme Colors */
+    .cm-s-monokai .cm-keyword {
+      color: #569cd6 !important;
+    }
+
+    .cm-s-monokai .cm-string {
+      color: #ce9178 !important;
+    }
+
+    .cm-s-monokai .cm-comment {
+      color: #6a9955 !important;
+    }
+
+    .cm-s-monokai .cm-def {
+      color: #dcdcaa !important;
+    }
+
+    .cm-s-monokai .cm-variable {
+      color: #9cdcfe !important;
+    }
+
+    .cm-s-monokai .cm-number {
+      color: #b5cea8 !important;
+    }
+
+    .cm-s-monokai .cm-operator {
+      color: #d4d4d4 !important;
+    }
+
+    .cm-s-monokai .cm-property {
+      color: #9cdcfe !important;
+    }
+
+    .cm-s-monokai .cm-tag {
+      color: #569cd6 !important;
+    }
+
+    .cm-s-monokai .cm-attribute {
+      color: #9cdcfe !important;
+    }
+
+    .cm-s-monokai .cm-atom {
+      color: #569cd6 !important;
+    }
+
+    .cm-s-monokai .cm-builtin {
+      color: #4ec9b0 !important;
+    }
+
+    .text-editor-line-numbers {
+      background-color: #252526;
+      color: #858585;
+      padding: 10px 8px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      text-align: right;
+      border-right: 1px solid #444;
+      min-width: 50px;
+      user-select: none;
+      overflow-y: hidden;
+    }
+
+    .text-editor-textarea {
+      flex: 1;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      border: none;
+      padding: 10px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      tab-size: 4;
+      -moz-tab-size: 4;
+      -webkit-tab-size: 4;
+    }
+
+    .text-editor-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 10px 0;
+    }
+
+    .text-editor-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .text-editor-btn-save {
+      background-color: #007acc;
+      color: white;
+    }
+
+    .text-editor-btn-cancel {
+      background-color: #666;
+      color: white;
+    }
+
+    .text-editor-btn:hover {
+      opacity: 0.8;
+    }
+
+    /* VSCode Dark+ Theme Syntax Highlighting */
+    .syntax-python {
+      color: #d4d4d4;
+    }
+
+    .syntax-python .keyword {
+      color: #569cd6;
+    }
+
+    .syntax-python .string {
+      color: #ce9178;
+    }
+
+    .syntax-python .comment {
+      color: #6a9955;
+    }
+
+    .syntax-python .function {
+      color: #dcdcaa;
+    }
+
+    .syntax-python .class {
+      color: #4ec9b0;
+    }
+
+    .syntax-python .number {
+      color: #b5cea8;
+    }
+
+    .syntax-python .operator {
+      color: #d4d4d4;
+    }
+
+    .syntax-html {
+      color: #d4d4d4;
+    }
+
+    .syntax-html .tag {
+      color: #569cd6;
+    }
+
+    .syntax-html .attribute {
+      color: #9cdcfe;
+    }
+
+    .syntax-html .string {
+      color: #ce9178;
+    }
+
+    .syntax-html .comment {
+      color: #6a9955;
+    }
+
+    .syntax-html .doctype {
+      color: #569cd6;
+    }
+
+    .syntax-javascript {
+      color: #d4d4d4;
+    }
+
+    .syntax-javascript .keyword {
+      color: #569cd6;
+    }
+
+    .syntax-javascript .string {
+      color: #ce9178;
+    }
+
+    .syntax-javascript .comment {
+      color: #6a9955;
+    }
+
+    .syntax-javascript .function {
+      color: #dcdcaa;
+    }
+
+    .syntax-javascript .number {
+      color: #b5cea8;
+    }
+
+    .syntax-javascript .operator {
+      color: #d4d4d4;
+    }
+
+    .syntax-javascript .boolean {
+      color: #569cd6;
+    }
+
+    .syntax-javascript .null {
+      color: #569cd6;
+    }
+
+    .syntax-json {
+      color: #d4d4d4;
+    }
+
+    .syntax-json .key {
+      color: #9cdcfe;
+    }
+
+    .syntax-json .string {
+      color: #ce9178;
+    }
+
+    .syntax-json .number {
+      color: #b5cea8;
+    }
+
+    .syntax-json .boolean {
+      color: #569cd6;
+    }
+
+    .syntax-json .null {
+      color: #569cd6;
+    }
+
+    .syntax-ini {
+      color: #d4d4d4;
+    }
+
+    .syntax-ini .section {
+      color: #569cd6;
+    }
+
+    .syntax-ini .key {
+      color: #9cdcfe;
+    }
+
+    .syntax-ini .string {
+      color: #ce9178;
+    }
+
+    .syntax-ini .comment {
+      color: #6a9955;
+    }
+
+    .syntax-text {
+      color: #d4d4d4;
+    }
+
+    /* Additional syntax highlighting for new file types */
+    .syntax-csharp {
+      color: #d4d4d4;
+    }
+
+    .syntax-csharp .keyword {
+      color: #569cd6;
+    }
+
+    .syntax-csharp .string {
+      color: #ce9178;
+    }
+
+    .syntax-csharp .comment {
+      color: #6a9955;
+    }
+
+    .syntax-csharp .function {
+      color: #dcdcaa;
+    }
+
+    .syntax-csharp .class {
+      color: #4ec9b0;
+    }
+
+    .syntax-csharp .number {
+      color: #b5cea8;
+    }
+
+    .syntax-csharp .operator {
+      color: #d4d4d4;
+    }
+
+    .syntax-csharp .namespace {
+      color: #569cd6;
+    }
+
+    .syntax-csharp .using {
+      color: #569cd6;
+    }
+
+    .syntax-sql {
+      color: #d4d4d4;
+    }
+
+    .syntax-sql .keyword {
+      color: #569cd6;
+    }
+
+    .syntax-sql .string {
+      color: #ce9178;
+    }
+
+    .syntax-sql .comment {
+      color: #6a9955;
+    }
+
+    .syntax-sql .function {
+      color: #dcdcaa;
+    }
+
+    .syntax-sql .number {
+      color: #b5cea8;
+    }
+
+    .syntax-sql .operator {
+      color: #d4d4d4;
+    }
+
+    .syntax-sql .table {
+      color: #4ec9b0;
+    }
+
+    .syntax-sql .column {
+      color: #9cdcfe;
+    }
+
+    .syntax-config {
+      color: #d4d4d4;
+    }
+
+    .syntax-config .section {
+      color: #569cd6;
+    }
+
+    .syntax-config .key {
+      color: #9cdcfe;
+    }
+
+    .syntax-config .string {
+      color: #ce9178;
+    }
+
+    .syntax-config .comment {
+      color: #6a9955;
+    }
+
+    .syntax-log {
+      color: #d4d4d4;
+    }
+
+    .syntax-log .timestamp {
+      color: #569cd6;
+    }
+
+    .syntax-log .level {
+      color: #ce9178;
+    }
+
+    .syntax-log .message {
+      color: #d4d4d4;
+    }
+
+    .syntax-batch {
+      color: #d4d4d4;
+    }
+
+    .syntax-batch .keyword {
+      color: #569cd6;
+    }
+
+    .syntax-batch .string {
+      color: #ce9178;
+    }
+
+    .syntax-batch .comment {
+      color: #6a9955;
+    }
+
+    .syntax-batch .function {
+      color: #dcdcaa;
+    }
+
+    .syntax-batch .variable {
+      color: #9cdcfe;
+    }
+
+    .syntax-batch .number {
+      color: #b5cea8;
+    }
+
+    .syntax-batch .operator {
+      color: #d4d4d4;
+    }
+
+    .syntax-batch .command {
+      color: #4ec9b0;
+    }
+
+    .syntax-css {
+      color: #d4d4d4;
+    }
+
+    .syntax-css .selector {
+      color: #569cd6;
+    }
+
+    .syntax-css .property {
+      color: #9cdcfe;
+    }
+
+    .syntax-css .string {
+      color: #ce9178;
+    }
+
+    .syntax-css .comment {
+      color: #6a9955;
+    }
+
+    .syntax-css .number {
+      color: #b5cea8;
+    }
+
+    .syntax-css .unit {
+      color: #569cd6;
+    }
+
+    .syntax-css .function {
+      color: #dcdcaa;
+    }
+
+    .syntax-css .color {
+      color: #ce9178;
+    }
+
+    .syntax-css .keyword {
+      color: #569cd6;
+    }
+
+    /* Code editor specific styles */
+    .code-editor-mode .text-editor-title {
+      color: #007acc;
+    }
+
+    .code-editor-mode .text-editor-header {
+      background-color: #2d2d30;
+      border-bottom: 2px solid #007acc;
+    }
+
+    .code-editor-mode .text-editor-code-container {
+      border: 1px solid #007acc;
+    }
+
+    .code-editor-mode .text-editor-line-numbers {
+      background-color: #252526;
+      color: #007acc;
+      border-right: 1px solid #007acc;
+    }
+
+    .text-editor-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 10px;
+      background-color: #1e1e1e;
+      border-top: 1px solid #444;
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* Chat Styles */
+    .chat-icon {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #007acc, #005a9e);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 122, 204, 0.3);
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .chat-icon:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 122, 204, 0.4);
+    }
+
+    .chat-icon i {
+      color: white;
+      font-size: 24px;
+    }
+
+    .chat-container {
+      position: fixed;
+      bottom: 90px;
+      left: 20px;
+      display: none;
+      flex-direction: row;
+      z-index: 1001;
+      gap: 10px;
+    }
+
+    .chat-tab-menu {
+      width: 200px;
+      height: 500px;
+      background: #2d2d2d;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid #444;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tab-header {
+      background: linear-gradient(135deg, #007acc, #005a9e);
+      color: white;
+      padding: 15px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tab-title {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .tab-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .tab-close:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .tab-content {
+      flex: 1;
+      background: #1e1e1e;
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+    }
+
+    .tab-list {
+      padding: 10px;
+      overflow-y: auto;
+      max-height: 100%;
+    }
+
+    .tab-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      margin-bottom: 5px;
+      background: #252525;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .tab-item:hover {
+      background: #333;
+      border-color: #007acc;
+    }
+
+    .tab-item.active {
+      background: #007acc;
+      color: white;
+      border-color: #007acc;
+    }
+
+    .tab-item i {
+      font-size: 12px;
+      width: 16px;
+      text-align: center;
+    }
+
+    .tab-item span {
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-box {
+      width: 350px;
+      height: 500px;
+      background: #2d2d2d;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #444;
+    }
+
+    .chat-header {
+      background: linear-gradient(135deg, #007acc, #005a9e);
+      color: white;
+      padding: 15px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-title {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .chat-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .chat-close:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .chat-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #1e1e1e;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      max-height: 350px;
+    }
+
+    .chat-welcome {
+      text-align: center;
+      color: #888;
+      font-size: 12px;
+      padding: 20px;
+    }
+
+    .chat-message {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    .chat-message.own {
+      background: #007acc;
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-message.other {
+      background: #444;
+      color: #ddd;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-message .sender {
+      font-size: 10px;
+      opacity: 0.8;
+      margin-bottom: 2px;
+    }
+
+    .chat-message .time {
+      font-size: 9px;
+      opacity: 0.6;
+      margin-top: 2px;
+    }
+
+    .chat-input-area {
+      padding: 15px;
+      border-top: 1px solid #444;
+      background: #252525;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .client-name-input {
+      display: flex;
+      gap: 8px;
+    }
+
+    .client-name-input input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: #1e1e1e;
+      color: #ddd;
+      font-size: 12px;
+    }
+
+    .client-name-input button {
+      padding: 8px 16px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.2s;
+    }
+
+    .client-name-input button:hover {
+      background: #005a9e;
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input-container input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: #1e1e1e;
+      color: #ddd;
+      font-size: 12px;
+    }
+
+    .chat-input-container button {
+      padding: 8px 16px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.2s;
+    }
+
+    .chat-input-container button:hover {
+      background: #005a9e;
+    }
+
+    /* Chat History List Styles */
+    .chat-history-list {
+      padding: 10px;
+    }
+
+    .history-header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #252525;
+      border-radius: 8px;
+    }
+
+    .history-header h3 {
+      margin: 0 0 5px 0;
+      color: #007acc;
+    }
+
+    .history-header p {
+      margin: 0;
+      color: #888;
+      font-size: 12px;
+    }
+
+    .history-chat-container {
+      background: #252525;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #444;
+      overflow: hidden;
+    }
+
+    .history-chat-header {
+      background: #333;
+      padding: 12px 15px;
+      border-bottom: 1px solid #444;
+    }
+
+    .history-chat-header h4 {
+      margin: 0 0 5px 0;
+      color: #ddd;
+      font-size: 14px;
+    }
+
+    .history-chat-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #888;
+    }
+
+    .history-chat-messages {
+      padding: 10px 15px;
+      max-height: 150px;
+      overflow-y: auto;
+      background: #1e1e1e;
+    }
+
+    .history-message {
+      margin-bottom: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .history-message:last-child {
+      border-bottom: none;
+    }
+
+    .history-sender {
+      font-weight: bold;
+      color: #007acc;
+      font-size: 11px;
+      margin-right: 5px;
+    }
+
+    .history-text {
+      color: #ddd;
+      font-size: 11px;
+      word-wrap: break-word;
+    }
+
+    .history-time {
+      color: #666;
+      font-size: 10px;
+      float: right;
+    }
+
+    .history-chat-actions {
+      padding: 10px 15px;
+      background: #333;
+      display: flex;
+      gap: 8px;
+    }
+
+    .history-action-btn {
+      padding: 6px 12px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: background-color 0.2s;
+    }
+
+    .history-action-btn:hover {
+      background: #005a9e;
+    }
+
+    .history-action-btn.delete-btn {
+      background: #dc3545;
+    }
+
+    .history-action-btn.delete-btn:hover {
+      background: #c82333;
+    }
+
+    .error-message {
+      color: #dc3545;
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
+  <div class="boxZoom">
+    <!-- Dialog overlay -->
+    <div class="dialog-overlay" id="dialog-contentz">
+      <!-- Dialog content -->
+      <div style="width: 100%;text-align: end;">
+        <i class="fa-solid fa-xmark close-button" onclick="closeDialog()"></i>
+      </div>
+      <div class="dialog-content" id="dialog-content"
+        style="transform: scale(0.9); display: flex; justify-content: center; align-items: center; width: 100%;">
+        <!-- Content inside the dialog goes here -->
+
+        <img class="dialog-image" id="dialog-image" src="" alt="Zoomed Image" style="height: 100%;" />
+        <!-- Close button -->
+      </div>
+      <div class="percen" id="zoom-show">
+        <span id="zoom-sizeimage">100%</span>
+      </div>
+      <div class="sizeimage">
+        <span id="sizeimage"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Icon (Fixed Bottom Left) -->
+  <div class="chat-icon" id="chatIcon" onclick="toggleChatBox()">
+    <i class="fa-solid fa-comments"></i>
+  </div>
+
+  <!-- Chat Box with Tab Menu -->
+  <div class="chat-container" id="chatContainer">
+    <!-- Tab Menu -->
+    <div class="chat-tab-menu" id="chatTabMenu">
+      <div class="tab-header">
+        <span class="tab-title">📋 Chat History</span>
+        <button class="tab-close" onclick="toggleChatBox()">&times;</button>
+      </div>
+      <div class="tab-content">
+        <div class="tab-list" id="chatTabList">
+          <div class="tab-item active" onclick="switchToNewChat()">
+            <i class="fa-solid fa-plus"></i>
+            <span>New Chat</span>
+          </div>
+          <div class="tab-item" onclick="showAllChatHistory()">
+            <i class="fa-solid fa-history"></i>
+            <span>All History</span>
+          </div>
+          <!-- Chat history tabs will be loaded here -->
         </div>
       </div>
     </div>
-    
-    <!-- Text Editor Dialog -->
-    <div class="text-editor-dialog" id="textEditorDialog">
-      <div class="text-editor-content">
-        <div class="text-editor-header">
-          <div class="text-editor-title" id="textEditorTitle">Text Editor</div>
-          <button class="text-editor-close" onclick="closeTextEditor()">&times;</button>
-        </div>
-                 <div class="text-editor-body">
-           <div class="text-editor-code-container">
-             <textarea id="textEditorTextarea" spellcheck="false"></textarea>
-           </div>
-          <div class="text-editor-status" id="textEditorStatus">
-            <span id="textEditorInfo">Line 1, Column 1</span>
-            <span id="textEditorType"></span>
+
+    <!-- Chat Box -->
+    <div class="chat-box" id="chatBox">
+      <div class="chat-header">
+        <span class="chat-title">💬 Multi-Client Chat</span>
+        <button class="chat-close" onclick="toggleChatBox()">&times;</button>
+      </div>
+      <div class="chat-body">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-welcome">
+            <p>Welcome to the multi-client chat! Enter your name to start chatting.</p>
+            <p>💬 Join the Global Chat to chat with all users in real-time!</p>
           </div>
         </div>
-        <div class="text-editor-footer">
-          <button class="text-editor-btn text-editor-btn-cancel" onclick="closeTextEditor()">Cancel</button>
-          <button class="text-editor-btn text-editor-btn-save" onclick="saveTextFile()">Save</button>
+        <div class="chat-input-area">
+          <div class="client-name-input" id="clientNameInput">
+            <input type="text" id="clientName" placeholder="Enter your name..." maxlength="20">
+            <button onclick="joinChat()">Join Chat</button>
+          </div>
+          <div class="chat-input-container d-none" id="chatInputContainer">
+            <input type="text" id="chatInput" placeholder="Type your message..." maxlength="500">
+            <button onclick="sendMessage()">Send</button>
+          </div>
         </div>
       </div>
     </div>
-    <script>
-      function uploadFiles(files = null) {
-        $('#progressContainer').removeClass('d-none')
-        let fileInput = document.getElementById('fileInput')
-        const system_path = $('#system_path').val()
-      
-        let selectedFiles = files || fileInput.files
-        console.log(selectedFiles)
-        if (selectedFiles.length === 0) {
-          alert('Please select files or folders to upload!')
-          return
-        }
-      
-        let formData = new FormData()
-        for (let i = 0; i < selectedFiles.length; i++) {
-          formData.append('files', selectedFiles[i], selectedFiles[i].webkitRelativePath || selectedFiles[i].relativePath || selectedFiles[i].name)
-        }
-        formData.append('system_path', system_path)
-        for (let [key, value] of formData.entries()) {
-          console.log(`${key}:`, value)
-        }
-        let progressBar = document.getElementById('progressBar')
-        let progressText = document.getElementById('progressText')
-        progressBar.style.width = '0%'
-        progressText.innerText = '0%'
-      
-        fetch('/upload/', {
-          method: 'POST',
-          body: formData
+  </div>
+
+  <!-- Text Editor Dialog -->
+  <div class="text-editor-dialog" id="textEditorDialog">
+    <div class="text-editor-content">
+      <div class="text-editor-header">
+        <div class="text-editor-title" id="textEditorTitle">Text Editor</div>
+        <button class="text-editor-close" onclick="closeTextEditor()">&times;</button>
+      </div>
+      <div class="text-editor-body">
+        <div class="text-editor-code-container">
+          <textarea id="textEditorTextarea" spellcheck="false"></textarea>
+        </div>
+        <div class="text-editor-status" id="textEditorStatus">
+          <span id="textEditorInfo">Line 1, Column 1</span>
+          <span id="textEditorType"></span>
+        </div>
+      </div>
+      <div class="text-editor-footer">
+        <button class="text-editor-btn text-editor-btn-cancel" onclick="closeTextEditor()">Cancel</button>
+        <button class="text-editor-btn text-editor-btn-save" onclick="saveTextFile()">Save</button>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+  <script>
+
+    function uploadFiles(files = null) {
+      $('#progressContainer').removeClass('d-none')
+      let fileInput = document.getElementById('fileInput')
+      const system_path = $('#system_path').val()
+
+      let selectedFiles = files || fileInput.files
+      console.log(selectedFiles)
+      if (selectedFiles.length === 0) {
+        alert('Please select files or folders to upload!')
+        return
+      }
+
+      let formData = new FormData()
+      for (let i = 0; i < selectedFiles.length; i++) {
+        formData.append('files', selectedFiles[i], selectedFiles[i].webkitRelativePath || selectedFiles[i].relativePath || selectedFiles[i].name)
+      }
+      formData.append('system_path', system_path)
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value)
+      }
+      let progressBar = document.getElementById('progressBar')
+      let progressText = document.getElementById('progressText')
+      progressBar.style.width = '0%'
+      progressText.innerText = '0%'
+
+      fetch('/upload/', {
+        method: 'POST',
+        body: formData
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          //let uploadedFilesList = document.getElementById("uploadedFiles");
+          //data.files.forEach(file => {
+          //      let listItem = document.createElement("li");
+          //      listItem.textContent = file;
+          //      uploadedFilesList.appendChild(listItem);
+          //});
+
+          progressBar.style.width = '100%'
+          progressText.innerText = '100%'
+          location.reload(true)
+          $('#progressContainer').addClass('d-none')
+          $('#progress_zip').addClass('d-none')
         })
-          .then((response) => response.json())
+        .catch((error) => {
+          console.error('Upload failed:', error)
+          $('#progressContainer').addClass('d-none')
+          $('#progress_zip').addClass('d-none')
+        })
+    }
+
+    document.getElementById('dropZone').addEventListener('drop', function (event) {
+      event.preventDefault()
+      event.stopPropagation()
+
+      let items = event.dataTransfer.items
+      let files = []
+
+      function readDirectory(entry, path = '') {
+        if (entry.isFile) {
+          entry.file((file) => {
+            file.relativePath = path + file.name // Preserve folder structure
+            files.push(file)
+          })
+        } else if (entry.isDirectory) {
+          let dirReader = entry.createReader()
+          dirReader.readEntries((entries) => {
+            entries.forEach((subEntry) => readDirectory(subEntry, path + entry.name + '/'))
+          })
+        }
+      }
+
+      for (let item of items) {
+        let entry = item.webkitGetAsEntry()
+        if (entry) {
+          readDirectory(entry)
+        }
+      }
+
+      setTimeout(() => {
+        console.log('Files:', files)
+        uploadFiles(files)
+      }, 1000)
+    })
+
+    document.getElementById('dropZone').addEventListener('dragover', function (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    })
+
+    // Listen for progress updates from server (commented out - socket not initialized)
+    // socket.on('upload_progress', function (data) {
+    //   let progressBar = document.getElementById('progressBar')
+    //   let progressText = document.getElementById('progressText')
+    //   progressBar.style.width = data.progress + '%'
+    //   progressText.innerText = data.progress + '%'
+    // })
+
+    $('#deleteBtn').click(function () {
+      const selectedItems_ = [...selectedItems, ...selectedfile]
+      let strName = ''
+      for (let s of selectedItems_) {
+        strName += s
+      }
+      let pathToDelete = strName // $("#pathInput").val(); // Get path from input field
+
+      if (!pathToDelete) {
+        alert('Please enter a file/folder path.')
+        return
+      }
+      const system_path = $('#system_path').val()
+
+      console.log('system_path', system_path)
+      console.log('Delete', selectedItems_)
+      // Show confirmation popup
+      if (confirm(`Are you sure you want to delete: ${pathToDelete}?`)) {
+        const requestBody = {
+          system_path: system_path,
+          folders: selectedItems_
+        }
+        fetch('/delete', {
+          method: 'POST',
+          body: JSON.stringify(requestBody),
+          headers: {
+            'Content-Type': 'application/json' // Specify the content type
+          }
+        })
+          .then((response) => {
+            // Check if the response status is ok (200-299)
+            if (!response.ok) {
+              throw new Error(`Error: ${response.statusText}`)
+            }
+            return response.json() // Parse the JSON response
+          })
           .then((data) => {
-            //let uploadedFilesList = document.getElementById("uploadedFiles");
-            //data.files.forEach(file => {
-            //      let listItem = document.createElement("li");
-            //      listItem.textContent = file;
-            //      uploadedFilesList.appendChild(listItem);
-            //});
-      
-            progressBar.style.width = '100%'
-            progressText.innerText = '100%'
+            // Assuming the server returns a message in the response
+            // alert(data.message);
             location.reload(true)
-            $('#progressContainer').addClass('d-none')
-            $('#progress_zip').addClass('d-none')
           })
           .catch((error) => {
-            console.error('Upload failed:', error)
-            $('#progressContainer').addClass('d-none')
-            $('#progress_zip').addClass('d-none')
+            // Log any error that occurs during the request
+            console.error('Error:', error)
+            alert('There was an error processing your request.')
           })
       }
-      
-      document.getElementById('dropZone').addEventListener('drop', function (event) {
-        event.preventDefault()
-        event.stopPropagation()
-      
-        let items = event.dataTransfer.items
-        let files = []
-      
-        function readDirectory(entry, path = '') {
-          if (entry.isFile) {
-            entry.file((file) => {
-              file.relativePath = path + file.name // Preserve folder structure
-              files.push(file)
-            })
-          } else if (entry.isDirectory) {
-            let dirReader = entry.createReader()
-            dirReader.readEntries((entries) => {
-              entries.forEach((subEntry) => readDirectory(subEntry, path + entry.name + '/'))
-            })
-          }
-        }
-      
-        for (let item of items) {
-          let entry = item.webkitGetAsEntry()
-          if (entry) {
-            readDirectory(entry)
-          }
-        }
-      
-        setTimeout(() => {
-          console.log('Files:', files)
-          uploadFiles(files)
-        }, 1000)
-      })
-      
-      document.getElementById('dropZone').addEventListener('dragover', function (event) {
-        event.preventDefault()
-        event.stopPropagation()
-      })
-      
-      // Listen for progress updates from server
-      socket.on('upload_progress', function (data) {
-        let progressBar = document.getElementById('progressBar')
-        let progressText = document.getElementById('progressText')
-        progressBar.style.width = data.progress + '%'
-        progressText.innerText = data.progress + '%'
-      })
-      
-      $('#deleteBtn').click(function () {
-        const selectedItems_ = [...selectedItems, ...selectedfile]
-        let strName = ''
-        for (let s of selectedItems_) {
-          strName += s
-        }
-        let pathToDelete = strName // $("#pathInput").val(); // Get path from input field
-      
-        if (!pathToDelete) {
-          alert('Please enter a file/folder path.')
-          return
-        }
-        const system_path = $('#system_path').val()
-      
-        console.log('system_path', system_path)
-        console.log('Delete', selectedItems_)
-        // Show confirmation popup
-        if (confirm(`Are you sure you want to delete: ${pathToDelete}?`)) {
-          const requestBody = {
-            system_path: system_path,
-            folders: selectedItems_
-          }
-          fetch('/delete', {
-            method: 'POST',
-            body: JSON.stringify(requestBody),
-            headers: {
-              'Content-Type': 'application/json' // Specify the content type
-            }
-          })
-            .then((response) => {
-              // Check if the response status is ok (200-299)
-              if (!response.ok) {
-                throw new Error(`Error: ${response.statusText}`)
-              }
-              return response.json() // Parse the JSON response
-            })
-            .then((data) => {
-              // Assuming the server returns a message in the response
-              // alert(data.message);
-              location.reload(true)
-            })
-            .catch((error) => {
-              // Log any error that occurs during the request
-              console.error('Error:', error)
-              alert('There was an error processing your request.')
-            })
+    })
+
+    $('#NewFolder').click(function () {
+      $('#popup').css('display', 'flex')
+    })
+    $('#close').click(function () {
+      $('#popup').css('display', 'none')
+    })
+
+    $('#createFolderBtn').click(function () {
+      let folderName = $('#folderName').val() // Get folder name from input field
+      let path = $('#system_path').val() // Define the base path where the folder will be created
+
+      if (!folderName) {
+        alert('Please enter a folder name!')
+        return
+      }
+
+      // Send POST request to the server to create the folder
+      $.ajax({
+        url: '/create_folder', // Adjust the API endpoint as needed
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          system_path: path,
+          folder_name: folderName
+        }),
+        success: function (response) {
+          //  alert(response.message);  // Show success message
+          $('#popup').hide() // Close the popup after folder creation
+          $('#folderName').val('')
+          location.reload(true)
+          //
+        },
+        error: function (xhr, status, error) {
+          alert('Error creating folder: ' + xhr.responseJSON.error) // Show error message
         }
       })
-      
-      $('#NewFolder').click(function () {
-        $('#popup').css('display', 'flex')
-      })
-      $('#close').click(function () {
-        $('#popup').css('display', 'none')
-      })
-      
-      $('#createFolderBtn').click(function () {
-        let folderName = $('#folderName').val() // Get folder name from input field
-        let path = $('#system_path').val() // Define the base path where the folder will be created
-      
-        if (!folderName) {
-          alert('Please enter a folder name!')
-          return
-        }
-      
-        // Send POST request to the server to create the folder
-        $.ajax({
-          url: '/create_folder', // Adjust the API endpoint as needed
-          method: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify({
-            system_path: path,
-            folder_name: folderName
-          }),
-          success: function (response) {
-            //  alert(response.message);  // Show success message
-            $('#popup').hide() // Close the popup after folder creation
-            $('#folderName').val('')
-            location.reload(true)
-            //
+    })
+
+    // Text Editor Variables
+    let currentTextFilePath = '';
+    let currentTextFileType = '';
+    let codeEditor = null;
+
+    // Initialize CodeMirror editor
+    function initializeCodeEditor() {
+      if (codeEditor) {
+        codeEditor.toTextArea();
+      }
+
+      codeEditor = CodeMirror.fromTextArea(document.getElementById('textEditorTextarea'), {
+        mode: 'text/plain',
+        theme: 'monokai',
+        lineNumbers: true,
+        lineWrapping: false,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+        showCursorWhenSelecting: true,
+        extraKeys: {
+          "Ctrl-S": function (cm) {
+            saveTextFile();
           },
-          error: function (xhr, status, error) {
-            alert('Error creating folder: ' + xhr.responseJSON.error) // Show error message
+          "Ctrl-Q": function (cm) {
+            closeTextEditor();
+          },
+          "Esc": function (cm) {
+            closeTextEditor();
           }
+        }
+      });
+
+      // Update status bar on cursor movement
+      codeEditor.on('cursorActivity', function () {
+        updateTextEditorStatus();
+      });
+
+      // Update line numbers on content change
+      codeEditor.on('change', function () {
+        updateLineNumbers();
+      });
+    }
+
+    // Handle double-click on text files
+    function handleTextFileDoubleClick(systemPath, fileName, fileType) {
+      // Check if it's a supported text file type
+      const supportedTypes = ['txt', 'py', 'ini', 'html', 'js', 'json', 'config', 'log', 'cs', 'sql', 'xml', 'bat', 'css', 'php', 'java', 'cpp', 'c', 'rb', 'go', 'rs', 'swift', 'kt', 'scala', 'ts', 'jsx', 'tsx', 'vue', 'svelte', 'dockerfile', 'yml', 'yaml', 'toml', 'md', 'sh', 'ps1', 'r', 'm', 'pl', 'lua', 'hs', 'fs', 'clj', 'ex', 'elm', 'nim', 'zig', 'v', 'cr', 'dart', 'coffee', 'less', 'sass', 'scss', 'styl', 'asm', 's', 'f90', 'pas', 'bas', 'vbs', 'ahk', 'au3'];
+      if (!supportedTypes.includes(fileType)) {
+        return; // Do nothing for non-text files
+      }
+
+      currentTextFilePath = systemPath;
+      currentTextFileType = fileType;
+
+      // Load the file content
+      loadTextFile(systemPath, fileName);
+    }
+
+    // Load text file content
+    function loadTextFile(systemPath, fileName) {
+      fetch('/read_text_file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          system_path: systemPath,
+          file_name: fileName
         })
       })
-
-      // Text Editor Variables
-      let currentTextFilePath = '';
-      let currentTextFileType = '';
-      let codeEditor = null;
-
-      // Initialize CodeMirror editor
-      function initializeCodeEditor() {
-        if (codeEditor) {
-          codeEditor.toTextArea();
-        }
-        
-        codeEditor = CodeMirror.fromTextArea(document.getElementById('textEditorTextarea'), {
-          mode: 'text/plain',
-          theme: 'monokai',
-          lineNumbers: true,
-          lineWrapping: false,
-          indentUnit: 4,
-          tabSize: 4,
-          indentWithTabs: false,
-          autoCloseBrackets: true,
-          matchBrackets: true,
-          showCursorWhenSelecting: true,
-          extraKeys: {
-            "Ctrl-S": function(cm) {
-              saveTextFile();
-            },
-            "Ctrl-Q": function(cm) {
-              closeTextEditor();
-            },
-            "Esc": function(cm) {
-              closeTextEditor();
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('textEditorTitle').textContent = `Text Editor - ${fileName}`;
+            // Initialize CodeMirror if not already done
+            if (!codeEditor) {
+              initializeCodeEditor();
             }
+
+            // Set content and mode
+            codeEditor.setValue(data.content);
+            setSyntaxHighlighting(currentTextFileType);
+
+            document.getElementById('textEditorDialog').style.display = 'flex';
+            // Enforce overlay color with !important at runtime
+            document.getElementById('textEditorDialog')
+              .style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
+            document.getElementById('textEditorDialog')
+              .style.setProperty('display', 'flex', 'important');
+
+            // Update status bar
+            updateTextEditorStatus();
+            document.getElementById('textEditorType').textContent = currentTextFileType.toUpperCase();
+
+            // Refresh CodeMirror display
+            setTimeout(() => {
+              codeEditor.refresh();
+            }, 100);
+          } else {
+            alert('Error loading file: ' + data.error);
           }
-        });
-        
-        // Update status bar on cursor movement
-        codeEditor.on('cursorActivity', function() {
-          updateTextEditorStatus();
-        });
-        
-        // Update line numbers on content change
-        codeEditor.on('change', function() {
-          updateLineNumbers();
-        });
-      }
-
-                    // Handle double-click on text files
-        function handleTextFileDoubleClick(systemPath, fileName, fileType) {
-          // Check if it's a supported text file type
-                     const supportedTypes = ['txt', 'py', 'ini', 'html', 'js', 'json', 'config', 'log', 'cs', 'sql', 'xml', 'bat', 'css', 'php', 'java', 'cpp', 'c', 'rb', 'go', 'rs', 'swift', 'kt', 'scala', 'ts', 'jsx', 'tsx', 'vue', 'svelte', 'dockerfile', 'yml', 'yaml', 'toml', 'md', 'sh', 'ps1', 'r', 'm', 'pl', 'lua', 'hs', 'fs', 'clj', 'ex', 'elm', 'nim', 'zig', 'v', 'cr', 'dart', 'coffee', 'less', 'sass', 'scss', 'styl', 'asm', 's', 'f90', 'pas', 'bas', 'vbs', 'ahk', 'au3'];
-          if (!supportedTypes.includes(fileType)) {
-            return; // Do nothing for non-text files
-          }
-
-        currentTextFilePath = systemPath;
-        currentTextFileType = fileType;
-        
-        // Load the file content
-        loadTextFile(systemPath, fileName);
-      }
-
-             // Load text file content
-       function loadTextFile(systemPath, fileName) {
-         fetch('/read_text_file', {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify({
-             system_path: systemPath,
-             file_name: fileName
-           })
-         })
-         .then(response => response.json())
-                   .then(data => {
-            if (data.success) {
-              document.getElementById('textEditorTitle').textContent = `Text Editor - ${fileName}`;
-              // Initialize CodeMirror if not already done
-              if (!codeEditor) {
-                initializeCodeEditor();
-              }
-              
-              // Set content and mode
-              codeEditor.setValue(data.content);
-              setSyntaxHighlighting(currentTextFileType);
-              
-              document.getElementById('textEditorDialog').style.display = 'flex';
-              // Enforce overlay color with !important at runtime
-              document.getElementById('textEditorDialog')
-                .style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
-              document.getElementById('textEditorDialog')
-                .style.setProperty('display', 'flex', 'important');
-              
-              // Update status bar
-              updateTextEditorStatus();
-              document.getElementById('textEditorType').textContent = currentTextFileType.toUpperCase();
-              
-              // Refresh CodeMirror display
-              setTimeout(() => {
-                codeEditor.refresh();
-              }, 100);
-            } else {
-             alert('Error loading file: ' + data.error);
-           }
-         })
-         .catch(error => {
-           console.error('Error:', error);
-           alert('Error loading file');
-         });
-       }
-
-      // Save text file
-      function saveTextFile() {
-        const content = codeEditor.getValue();
-        const fileName = document.getElementById('textEditorTitle').textContent.split(' - ')[1];
-        
-        fetch('/save_text_file', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            system_path: currentTextFilePath,
-            file_name: fileName,
-            content: content
-          })
         })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error loading file');
+        });
+    }
+
+    // Save text file
+    function saveTextFile() {
+      const content = codeEditor.getValue();
+      const fileName = document.getElementById('textEditorTitle').textContent.split(' - ')[1];
+
+      fetch('/save_text_file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          system_path: currentTextFilePath,
+          file_name: fileName,
+          content: content
+        })
+      })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
@@ -889,249 +1677,258 @@
           console.error('Error:', error);
           alert('Error saving file');
         });
+    }
+
+    // Close text editor
+    function closeTextEditor() {
+      document.getElementById('textEditorDialog').style.display = 'none';
+      if (codeEditor) {
+        codeEditor.setValue('');
+      }
+      document.getElementById('textEditorDialog').classList.remove('code-editor-mode');
+      currentTextFilePath = '';
+      currentTextFileType = '';
+    }
+
+    // Set syntax highlighting based on file type
+    function setSyntaxHighlighting(fileType) {
+      let mode = 'text/plain';
+
+      switch (fileType) {
+        // Python
+        case 'py':
+          mode = 'text/x-python';
+          break;
+        // Web Technologies
+        case 'html':
+          mode = 'text/html';
+          break;
+        case 'js':
+          mode = 'text/javascript';
+          break;
+        case 'jsx':
+          mode = 'text/jsx';
+          break;
+        case 'ts':
+          mode = 'text/typescript';
+          break;
+        case 'tsx':
+          mode = 'text/typescript-jsx';
+          break;
+        case 'vue':
+          mode = 'text/x-vue';
+          break;
+        case 'svelte':
+          mode = 'text/x-svelte';
+          break;
+        case 'json':
+          mode = 'application/json';
+          break;
+        case 'css':
+          mode = 'text/css';
+          break;
+        case 'less':
+          mode = 'text/x-less';
+          break;
+        case 'sass':
+          mode = 'text/x-sass';
+          break;
+        case 'scss':
+          mode = 'text/x-scss';
+          break;
+        case 'styl':
+          mode = 'text/x-stylus';
+          break;
+        // C-like Languages
+        case 'c':
+          mode = 'text/x-csrc';
+          break;
+        case 'cpp':
+          mode = 'text/x-c++src';
+          break;
+        case 'cs':
+          mode = 'text/x-csharp';
+          break;
+        case 'java':
+          mode = 'text/x-java';
+          break;
+        case 'kt':
+          mode = 'text/x-kotlin';
+          break;
+        case 'swift':
+          mode = 'text/x-swift';
+          break;
+        case 'go':
+          mode = 'text/x-go';
+          break;
+        case 'rs':
+          mode = 'text/x-rust';
+          break;
+        case 'scala':
+          mode = 'text/x-scala';
+          break;
+        case 'dart':
+          mode = 'text/x-dart';
+          break;
+        case 'zig':
+          mode = 'text/x-zig';
+          break;
+        case 'v':
+          mode = 'text/x-v';
+          break;
+        case 'cr':
+          mode = 'text/x-crystal';
+          break;
+        case 'nim':
+          mode = 'text/x-nim';
+          break;
+        // Scripting Languages
+        case 'php':
+          mode = 'text/x-php';
+          break;
+        case 'rb':
+          mode = 'text/x-ruby';
+          break;
+        case 'pl':
+          mode = 'text/x-perl';
+          break;
+        case 'lua':
+          mode = 'text/x-lua';
+          break;
+        case 'coffee':
+          mode = 'text/x-coffeescript';
+          break;
+        case 'r':
+          mode = 'text/x-r';
+          break;
+        case 'm':
+          mode = 'text/x-octave';
+          break;
+        // Functional Languages
+        case 'hs':
+          mode = 'text/x-haskell';
+          break;
+        case 'fs':
+          mode = 'text/x-fsharp';
+          break;
+        case 'clj':
+          mode = 'text/x-clojure';
+          break;
+        case 'ex':
+          mode = 'text/x-erlang';
+          break;
+        case 'elm':
+          mode = 'text/x-elm';
+          break;
+        // Shell Scripts
+        case 'sh':
+          mode = 'text/x-sh';
+          break;
+        case 'bat':
+          mode = 'text/x-batch';
+          break;
+        case 'ps1':
+          mode = 'text/x-powershell';
+          break;
+        case 'ahk':
+          mode = 'text/x-autohotkey';
+          break;
+        case 'au3':
+          mode = 'text/x-autoit';
+          break;
+        // Configuration Files
+        case 'ini':
+          mode = 'text/x-ini';
+          break;
+        case 'config':
+          mode = 'text/x-ini';
+          break;
+        case 'yml':
+        case 'yaml':
+          mode = 'text/x-yaml';
+          break;
+        case 'toml':
+          mode = 'text/x-toml';
+          break;
+        case 'dockerfile':
+          mode = 'text/x-dockerfile';
+          break;
+        // Documentation
+        case 'md':
+          mode = 'text/x-markdown';
+          break;
+        // Database
+        case 'sql':
+          mode = 'text/x-sql';
+          break;
+        // Data Formats
+        case 'xml':
+          mode = 'text/xml';
+          break;
+        // Assembly
+        case 'asm':
+        case 's':
+          mode = 'text/x-gas';
+          break;
+        // Legacy Languages
+        case 'f90':
+          mode = 'text/x-fortran';
+          break;
+        case 'pas':
+          mode = 'text/x-pascal';
+          break;
+        case 'bas':
+          mode = 'text/x-basic';
+          break;
+        case 'vbs':
+          mode = 'text/x-vb';
+          break;
+        // Other
+        case 'log':
+        case 'txt':
+          mode = 'text/plain';
+          break;
       }
 
-             // Close text editor
-       function closeTextEditor() {
-         document.getElementById('textEditorDialog').style.display = 'none';
-         if (codeEditor) {
-           codeEditor.setValue('');
-         }
-         document.getElementById('textEditorDialog').classList.remove('code-editor-mode');
-         currentTextFilePath = '';
-         currentTextFileType = '';
-       }
+      if (codeEditor) {
+        codeEditor.setOption('mode', mode);
+      }
+    }
 
-                          // Set syntax highlighting based on file type
-                 function setSyntaxHighlighting(fileType) {
-           let mode = 'text/plain';
-           
-           switch(fileType) {
-             // Python
-             case 'py':
-               mode = 'text/x-python';
-               break;
-             // Web Technologies
-             case 'html':
-               mode = 'text/html';
-               break;
-             case 'js':
-               mode = 'text/javascript';
-               break;
-             case 'jsx':
-               mode = 'text/jsx';
-               break;
-             case 'ts':
-               mode = 'text/typescript';
-               break;
-             case 'tsx':
-               mode = 'text/typescript-jsx';
-               break;
-             case 'vue':
-               mode = 'text/x-vue';
-               break;
-             case 'svelte':
-               mode = 'text/x-svelte';
-               break;
-             case 'json':
-               mode = 'application/json';
-               break;
-             case 'css':
-               mode = 'text/css';
-               break;
-             case 'less':
-               mode = 'text/x-less';
-               break;
-             case 'sass':
-               mode = 'text/x-sass';
-               break;
-             case 'scss':
-               mode = 'text/x-scss';
-               break;
-             case 'styl':
-               mode = 'text/x-stylus';
-               break;
-             // C-like Languages
-             case 'c':
-               mode = 'text/x-csrc';
-               break;
-             case 'cpp':
-               mode = 'text/x-c++src';
-               break;
-             case 'cs':
-               mode = 'text/x-csharp';
-               break;
-             case 'java':
-               mode = 'text/x-java';
-               break;
-             case 'kt':
-               mode = 'text/x-kotlin';
-               break;
-             case 'swift':
-               mode = 'text/x-swift';
-               break;
-             case 'go':
-               mode = 'text/x-go';
-               break;
-             case 'rs':
-               mode = 'text/x-rust';
-               break;
-             case 'scala':
-               mode = 'text/x-scala';
-               break;
-             case 'dart':
-               mode = 'text/x-dart';
-               break;
-             case 'zig':
-               mode = 'text/x-zig';
-               break;
-             case 'v':
-               mode = 'text/x-v';
-               break;
-             case 'cr':
-               mode = 'text/x-crystal';
-               break;
-             case 'nim':
-               mode = 'text/x-nim';
-               break;
-             // Scripting Languages
-             case 'php':
-               mode = 'text/x-php';
-               break;
-             case 'rb':
-               mode = 'text/x-ruby';
-               break;
-             case 'pl':
-               mode = 'text/x-perl';
-               break;
-             case 'lua':
-               mode = 'text/x-lua';
-               break;
-             case 'coffee':
-               mode = 'text/x-coffeescript';
-               break;
-             case 'r':
-               mode = 'text/x-r';
-               break;
-             case 'm':
-               mode = 'text/x-octave';
-               break;
-             // Functional Languages
-             case 'hs':
-               mode = 'text/x-haskell';
-               break;
-             case 'fs':
-               mode = 'text/x-fsharp';
-               break;
-             case 'clj':
-               mode = 'text/x-clojure';
-               break;
-             case 'ex':
-               mode = 'text/x-erlang';
-               break;
-             case 'elm':
-               mode = 'text/x-elm';
-               break;
-             // Shell Scripts
-             case 'sh':
-               mode = 'text/x-sh';
-               break;
-             case 'bat':
-               mode = 'text/x-batch';
-               break;
-             case 'ps1':
-               mode = 'text/x-powershell';
-               break;
-             case 'ahk':
-               mode = 'text/x-autohotkey';
-               break;
-             case 'au3':
-               mode = 'text/x-autoit';
-               break;
-             // Configuration Files
-             case 'ini':
-               mode = 'text/x-ini';
-               break;
-             case 'config':
-               mode = 'text/x-ini';
-               break;
-             case 'yml':
-             case 'yaml':
-               mode = 'text/x-yaml';
-               break;
-             case 'toml':
-               mode = 'text/x-toml';
-               break;
-             case 'dockerfile':
-               mode = 'text/x-dockerfile';
-               break;
-             // Documentation
-             case 'md':
-               mode = 'text/x-markdown';
-               break;
-             // Database
-             case 'sql':
-               mode = 'text/x-sql';
-               break;
-             // Data Formats
-             case 'xml':
-               mode = 'text/xml';
-               break;
-             // Assembly
-             case 'asm':
-             case 's':
-               mode = 'text/x-gas';
-               break;
-             // Legacy Languages
-             case 'f90':
-               mode = 'text/x-fortran';
-               break;
-             case 'pas':
-               mode = 'text/x-pascal';
-               break;
-             case 'bas':
-               mode = 'text/x-basic';
-               break;
-             case 'vbs':
-               mode = 'text/x-vb';
-               break;
-             // Other
-             case 'log':
-             case 'txt':
-               mode = 'text/plain';
-               break;
-           }
-           
-           if (codeEditor) {
-             codeEditor.setOption('mode', mode);
-           }
-         }
 
-      
 
-                          // Update line numbers
-        function updateLineNumbers() {
-          // CodeMirror handles line numbers automatically
-        }
-       
-               // Update text editor status bar
-        function updateTextEditorStatus() {
-          if (!codeEditor) return;
-          
-          const status = document.getElementById('textEditorInfo');
-          
-          function updateStatus() {
-            const cursor = codeEditor.getCursor();
-            const line = cursor.line + 1;
-            const column = cursor.ch + 1;
-            
-            status.textContent = `Line ${line}, Column ${column}`;
-          }
-          
-          // Initial update
-          updateStatus();
-        }
-    </script>
-  </body>
-  <script src="{{ url_for('static', filename='java_imagezoom.js') }}"></script>
+    // Update line numbers
+    function updateLineNumbers() {
+      // CodeMirror handles line numbers automatically
+    }
+
+    // Update text editor status bar
+    function updateTextEditorStatus() {
+      if (!codeEditor) return;
+
+      const status = document.getElementById('textEditorInfo');
+
+      function updateStatus() {
+        const cursor = codeEditor.getCursor();
+        const line = cursor.line + 1;
+        const column = cursor.ch + 1;
+
+        status.textContent = `Line ${line}, Column ${column}`;
+      }
+
+      // Initial update
+      updateStatus();
+    }
+
+
+
+
+
+
+
+
+  </script>
+</body>
+<script src="{{ url_for('static', filename='java_imagezoom.js') }}"></script>
+
 </html>

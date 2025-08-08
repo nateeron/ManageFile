@@ -1,0 +1,553 @@
+{
+  "clientName": "M1",
+  "lastUpdated": "2025-08-08T16:38:23.704190",
+  "messages": [
+    {
+      "sender": "System",
+      "message": "M1 joined the chat!",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "sender": "System",
+      "message": "M1 joined the chat!",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "sender": "System",
+      "message": "M1 joined the chat!",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "System",
+      "message": "M1 joined the chat!",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "Assistant",
+      "message": "That's interesting! Tell me more.",
+      "timestamp": "2025-08-08T07:57:41.640Z",
+      "type": "other"
+    },
+    {
+      "sender": "Assistant",
+      "message": "That's interesting! Tell me more.",
+      "timestamp": "2025-08-08T07:57:43.123Z",
+      "type": "other"
+    },
+    {
+      "sender": "M1",
+      "message": "asd",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asd",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "sender": "System",
+      "message": "M1 joined the chat!",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "Assistant",
+      "message": "That's interesting! Tell me more.",
+      "timestamp": "2025-08-08T07:57:41.640Z",
+      "type": "other"
+    },
+    {
+      "sender": "Assistant",
+      "message": "That's interesting! Tell me more.",
+      "timestamp": "2025-08-08T07:57:43.123Z",
+      "type": "other"
+    },
+    {
+      "sender": "M1",
+      "message": "asd",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asd",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "sender": "Assistant",
+      "message": "I understand. What would you like to do next?",
+      "timestamp": "2025-08-08T07:57:46.411Z",
+      "type": "other"
+    },
+    {
+      "sender": "M1",
+      "message": "what",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "what",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "sender": "System",
+      "message": "M1 joined the chat!",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "sender": "Assistant",
+      "message": "That's interesting! Tell me more.",
+      "timestamp": "2025-08-08T07:57:41.640Z",
+      "type": "other"
+    },
+    {
+      "sender": "Assistant",
+      "message": "That's interesting! Tell me more.",
+      "timestamp": "2025-08-08T07:57:43.123Z",
+      "type": "other"
+    },
+    {
+      "sender": "M1",
+      "message": "asd",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "asd",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "sender": "Assistant",
+      "message": "I understand. What would you like to do next?",
+      "timestamp": "2025-08-08T07:57:46.411Z",
+      "type": "other"
+    },
+    {
+      "sender": "M1",
+      "message": "what",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "what",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "sender": "Assistant",
+      "message": "Great question! Let me think about that.",
+      "timestamp": "2025-08-08T07:58:07.807Z",
+      "type": "other"
+    },
+    {
+      "sender": "M1",
+      "message": "1+1 = ?",
+      "timestamp": "2025-08-08T07:58:18.728Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "1+1 = ?",
+      "timestamp": "2025-08-08T07:58:18.728Z",
+      "type": "own"
+    },
+    {
+      "message": "M1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "message": "M1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "message": "M1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "M1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "That's interesting! Tell me more.",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:41.640Z",
+      "type": "other"
+    },
+    {
+      "message": "That's interesting! Tell me more.",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:43.123Z",
+      "type": "other"
+    },
+    {
+      "message": "asd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "message": "asd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "message": "M1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "That's interesting! Tell me more.",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:41.640Z",
+      "type": "other"
+    },
+    {
+      "message": "That's interesting! Tell me more.",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:43.123Z",
+      "type": "other"
+    },
+    {
+      "message": "asd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "message": "asd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "message": "I understand. What would you like to do next?",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:46.411Z",
+      "type": "other"
+    },
+    {
+      "message": "what",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "message": "what",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "message": "M1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T07:57:36.857Z",
+      "type": "system"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.945Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:39.946Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:41.629Z",
+      "type": "own"
+    },
+    {
+      "message": "That's interesting! Tell me more.",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:41.640Z",
+      "type": "other"
+    },
+    {
+      "message": "That's interesting! Tell me more.",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:43.123Z",
+      "type": "other"
+    },
+    {
+      "message": "asd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "message": "asd",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:57:44.710Z",
+      "type": "own"
+    },
+    {
+      "message": "I understand. What would you like to do next?",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:57:46.411Z",
+      "type": "other"
+    },
+    {
+      "message": "what",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "message": "what",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:58:05.299Z",
+      "type": "own"
+    },
+    {
+      "message": "Great question! Let me think about that.",
+      "sender": "Assistant",
+      "timestamp": "2025-08-08T07:58:07.807Z",
+      "type": "other"
+    },
+    {
+      "message": "1+1 = ?",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:58:18.728Z",
+      "type": "own"
+    },
+    {
+      "message": "1+1 = ?",
+      "sender": "M1",
+      "timestamp": "2025-08-08T07:58:18.728Z",
+      "type": "own"
+    },
+    {
+      "sender": "M1",
+      "message": "555",
+      "timestamp": "2025-08-08T09:38:23.700Z",
+      "type": "own"
+    }
+  ],
+  "fileName": "M1.json"
+}

@@ -1,0 +1,96 @@
+{
+  "lastUpdated": "2025-08-08T16:38:41.161510",
+  "messages": [
+    {
+      "sender": "Global",
+      "message": "s",
+      "timestamp": "2025-08-08T09:29:16.081Z",
+      "type": "other"
+    },
+    {
+      "sender": "Global",
+      "message": "ssss",
+      "timestamp": "2025-08-08T09:29:18.058Z",
+      "type": "other"
+    },
+    {
+      "sender": "Global",
+      "message": "asdasdasd",
+      "timestamp": "2025-08-08T09:29:20.055Z",
+      "type": "other"
+    },
+    {
+      "sender": "Global",
+      "message": "RRR",
+      "timestamp": "2025-08-08T09:29:29.588Z",
+      "type": "other"
+    },
+    {
+      "sender": "Global",
+      "message": "asdasdasd",
+      "timestamp": "2025-08-08T09:29:31.506Z",
+      "type": "other"
+    },
+    {
+      "sender": "Global",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T09:29:33.074Z",
+      "type": "other"
+    },
+    {
+      "sender": "asdasd",
+      "message": "sadasd",
+      "timestamp": "2025-08-08T09:29:40.222Z",
+      "type": "other"
+    },
+    {
+      "sender": "asdasd",
+      "message": "asdasdasd",
+      "timestamp": "2025-08-08T09:29:46.060Z",
+      "type": "other"
+    },
+    {
+      "sender": "Fe3",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T09:34:05.866Z",
+      "type": "other"
+    },
+    {
+      "sender": "Global",
+      "message": "asd",
+      "timestamp": "2025-08-08T09:36:08.686Z",
+      "type": "other"
+    },
+    {
+      "sender": "Global",
+      "message": "asdasdasd",
+      "timestamp": "2025-08-08T09:36:10.997Z",
+      "type": "other"
+    },
+    {
+      "sender": "M1",
+      "message": "555",
+      "timestamp": "2025-08-08T09:38:23.699Z",
+      "type": "other"
+    },
+    {
+      "sender": "asdasd",
+      "message": "555666",
+      "timestamp": "2025-08-08T09:38:28.393Z",
+      "type": "other"
+    },
+    {
+      "sender": "F1",
+      "message": "89989",
+      "timestamp": "2025-08-08T09:38:32.887Z",
+      "type": "other"
+    },
+    {
+      "sender": "Fe3",
+      "message": "888",
+      "timestamp": "2025-08-08T09:38:41.151Z",
+      "type": "other"
+    }
+  ],
+  "fileName": "global_chat.json"
+}

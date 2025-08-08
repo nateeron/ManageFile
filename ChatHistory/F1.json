@@ -1,0 +1,133 @@
+{
+  "clientName": "F1",
+  "lastUpdated": "2025-08-08T16:38:32.907191",
+  "messages": [
+    {
+      "sender": "System",
+      "message": "F1 joined the chat!",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "sender": "System",
+      "message": "F1 joined the chat!",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "sender": "F1",
+      "message": "ssss",
+      "timestamp": "2025-08-08T08:04:38.003Z",
+      "type": "own"
+    },
+    {
+      "sender": "F1",
+      "message": "ssss",
+      "timestamp": "2025-08-08T08:04:38.004Z",
+      "type": "own"
+    },
+    {
+      "message": "F1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "message": "F1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "message": "ssss",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:04:38.003Z",
+      "type": "own"
+    },
+    {
+      "message": "ssss",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:04:38.004Z",
+      "type": "own"
+    },
+    {
+      "sender": "F1",
+      "message": "FF",
+      "timestamp": "2025-08-08T08:08:16.766Z",
+      "type": "own"
+    },
+    {
+      "sender": "F1",
+      "message": "FF",
+      "timestamp": "2025-08-08T08:08:16.767Z",
+      "type": "own"
+    },
+    {
+      "message": "F1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "message": "F1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "message": "ssss",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:04:38.003Z",
+      "type": "own"
+    },
+    {
+      "message": "ssss",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:04:38.004Z",
+      "type": "own"
+    },
+    {
+      "message": "F1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "message": "F1 joined the chat!",
+      "sender": "System",
+      "timestamp": "2025-08-08T08:04:29.515Z",
+      "type": "system"
+    },
+    {
+      "message": "ssss",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:04:38.003Z",
+      "type": "own"
+    },
+    {
+      "message": "ssss",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:04:38.004Z",
+      "type": "own"
+    },
+    {
+      "message": "FF",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:08:16.766Z",
+      "type": "own"
+    },
+    {
+      "message": "FF",
+      "sender": "F1",
+      "timestamp": "2025-08-08T08:08:16.767Z",
+      "type": "own"
+    },
+    {
+      "sender": "F1",
+      "message": "89989",
+      "timestamp": "2025-08-08T09:38:32.888Z",
+      "type": "own"
+    }
+  ],
+  "fileName": "F1.json"
+}

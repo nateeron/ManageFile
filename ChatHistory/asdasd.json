@@ -1,0 +1,49 @@
+{
+  "clientName": "asdasd",
+  "lastUpdated": "2025-08-08T16:38:28.405731",
+  "messages": [
+    {
+      "sender": "asdasd",
+      "message": "sadasd",
+      "timestamp": "2025-08-08T09:29:40.223Z",
+      "type": "own"
+    },
+    {
+      "message": "sadasd",
+      "sender": "asdasd",
+      "timestamp": "2025-08-08T09:29:40.223Z",
+      "type": "own"
+    },
+    {
+      "sender": "asdasd",
+      "message": "asdasdasd",
+      "timestamp": "2025-08-08T09:29:46.060Z",
+      "type": "own"
+    },
+    {
+      "message": "sadasd",
+      "sender": "asdasd",
+      "timestamp": "2025-08-08T09:29:40.223Z",
+      "type": "own"
+    },
+    {
+      "message": "sadasd",
+      "sender": "asdasd",
+      "timestamp": "2025-08-08T09:29:40.223Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasdasd",
+      "sender": "asdasd",
+      "timestamp": "2025-08-08T09:29:46.060Z",
+      "type": "own"
+    },
+    {
+      "sender": "asdasd",
+      "message": "555666",
+      "timestamp": "2025-08-08T09:38:28.394Z",
+      "type": "own"
+    }
+  ],
+  "fileName": "asdasd.json"
+}

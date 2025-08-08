@@ -427,6 +427,256 @@ def save_text_file():
         
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/save_chat_file', methods=['POST'])
+def save_chat_file():
+    """API to save chat file with automatic cleanup of old files."""
+    try:
+        import json
+        from datetime import datetime
+        
+        data = request.get_json()
+        clientName = data.get('clientName', '')
+        chatData = data.get('chatData', {})
+        
+        if not clientName or not chatData:
+            return jsonify({'success': False, 'error': 'Missing required parameters'})
+        
+        # Create ChatHistory folder in the current directory
+        chat_folder = os.path.join(os.getcwd(), 'ChatHistory')
+        if not os.path.exists(chat_folder):
+            os.makedirs(chat_folder)
+        
+        # Use client name as filename (one file per client)
+        fileName = f"{clientName}.json"
+        file_path = os.path.join(chat_folder, fileName)
+        
+        # Check if file exists and load existing data
+        existing_data = {}
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+            except:
+                existing_data = {}
+        
+        # Merge existing messages with new messages
+        existing_messages = existing_data.get('messages', [])
+        new_messages = chatData.get('messages', [])
+        
+        # Add new messages to existing ones
+        updated_messages = existing_messages + new_messages
+        
+        # Update the chat data
+        updated_chat_data = {
+            'clientName': clientName,
+            'lastUpdated': datetime.now().isoformat(),
+            'messages': updated_messages,
+            'fileName': fileName
+        }
+        
+        # Clean old client files if more than 10 exist
+        clean_old_chat_files(chat_folder)
+        
+        # Save the updated chat file
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(updated_chat_data, f, indent=2, ensure_ascii=False)
+        
+        return jsonify({'success': True, 'filePath': file_path})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+def clean_old_chat_files(chat_folder):
+    """Clean old client chat files, keeping only the 10 most recent ones"""
+    try:
+        # Get all JSON files in the chat folder
+        json_files = [f for f in os.listdir(chat_folder) if f.endswith('.json')]
+        
+        if len(json_files) > 10:
+            # Sort files by modification time (oldest first)
+            json_files.sort(key=lambda x: os.path.getmtime(os.path.join(chat_folder, x)))
+            
+            # Remove oldest client files, keeping only 10
+            files_to_remove = json_files[:-10]
+            
+            for file_name in files_to_remove:
+                file_path = os.path.join(chat_folder, file_name)
+                try:
+                    os.remove(file_path)
+                    print(f"Removed old client chat file: {file_name}")
+                except Exception as e:
+                    print(f"Error removing file {file_name}: {e}")
+                    
+    except Exception as e:
+        print(f"Error cleaning old chat files: {e}")
+
+@app.route('/get_chat_files', methods=['GET'])
+def get_chat_files():
+    """Get list of available chat history files"""
+    try:
+        from datetime import datetime
+        
+        chat_folder = os.path.join(os.getcwd(), 'ChatHistory')
+        
+        if not os.path.exists(chat_folder):
+            return jsonify({'success': True, 'files': []})
+        
+        json_files = [f for f in os.listdir(chat_folder) if f.endswith('.json')]
+        
+        # Sort files by modification time (newest first)
+        json_files.sort(key=lambda x: os.path.getmtime(os.path.join(chat_folder, x)), reverse=True)
+        
+        return jsonify({'success': True, 'files': json_files})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/load_chat_file/<filename>', methods=['GET'])
+def load_chat_file(filename):
+    """Load a specific chat history file"""
+    try:
+        import json
+        
+        chat_folder = os.path.join(os.getcwd(), 'ChatHistory')
+        file_path = os.path.join(chat_folder, filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({'success': False, 'error': 'File not found'})
+        
+        with open(file_path, 'r', encoding='utf-8') as f:
+            chat_data = json.load(f)
+        
+        return jsonify({'success': True, 'chatData': chat_data})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/load_global_chat', methods=['GET'])
+def load_global_chat():
+    """Load global chat history for multi-client chat"""
+    try:
+        import json
+        
+        chat_folder = os.path.join(os.getcwd(), 'ChatHistory')
+        global_chat_file = os.path.join(chat_folder, 'global_chat.json')
+        
+        if not os.path.exists(global_chat_file):
+            return jsonify({'success': True, 'chatData': {'messages': []}})
+        
+        with open(global_chat_file, 'r', encoding='utf-8') as f:
+            chat_data = json.load(f)
+        
+        return jsonify({'success': True, 'chatData': chat_data})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/delete_chat_file/<filename>', methods=['DELETE'])
+def delete_chat_file(filename):
+    """Delete a specific chat file"""
+    try:
+        chat_folder = os.path.join(os.getcwd(), 'ChatHistory')
+        file_path = os.path.join(chat_folder, filename)
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return jsonify({'success': True, 'message': f'Chat file {filename} deleted successfully'})
+        else:
+            return jsonify({'success': False, 'error': 'Chat file not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# SocketIO Event Handlers for Multi-Client Chat
+@socketio.on('connect')
+def handle_connect(data=None):
+    """Handle client connection"""
+    print(f"Client connected: {request.sid}")
+    socketio.emit('user_connected', {'message': 'A new user joined the chat!'}, to=None, include_self=False)
+
+@socketio.on('disconnect')
+def handle_disconnect(data=None):
+    """Handle client disconnection"""
+    print(f"Client disconnected: {request.sid}")
+    socketio.emit('user_disconnected', {'message': 'A user left the chat!'}, to=None, include_self=False)
+
+@socketio.on('join_chat')
+def handle_join_chat(data):
+    """Handle user joining chat"""
+    client_name = data.get('clientName', 'Anonymous')
+    print(f"User {client_name} joined the chat")
+    socketio.emit('user_joined', {
+        'clientName': client_name,
+        'message': f'{client_name} joined the chat!'
+    }, to=None, include_self=False)
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    """Handle sending messages to all clients"""
+    sender = data.get('sender', 'Anonymous')
+    message = data.get('message', '')
+    timestamp = data.get('timestamp', '')
+    
+    print(f"Message from {sender}: {message}")
+    
+    # Broadcast message to all connected clients
+    socketio.emit('new_message', {
+        'sender': sender,
+        'message': message,
+        'timestamp': timestamp,
+        'type': 'other' if sender != data.get('currentClient', '') else 'own'
+    }, to=None, include_self=False)
+    
+    # Save message to file for persistence
+    try:
+        import json
+        from datetime import datetime
+        
+        chat_folder = os.path.join(os.getcwd(), 'ChatHistory')
+        if not os.path.exists(chat_folder):
+            os.makedirs(chat_folder)
+        
+        # Save to a global chat file for all users
+        global_chat_file = os.path.join(chat_folder, 'global_chat.json')
+        
+        # Load existing messages
+        existing_messages = []
+        if os.path.exists(global_chat_file):
+            try:
+                with open(global_chat_file, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+                    existing_messages = existing_data.get('messages', [])
+            except:
+                existing_messages = []
+        
+        # Add new message
+        new_message = {
+            'sender': sender,
+            'message': message,
+            'timestamp': timestamp,
+            'type': 'other'
+        }
+        existing_messages.append(new_message)
+        
+        # Keep only last 100 messages to prevent file from growing too large
+        if len(existing_messages) > 100:
+            existing_messages = existing_messages[-100:]
+        
+        # Save updated chat data
+        chat_data = {
+            'lastUpdated': datetime.now().isoformat(),
+            'messages': existing_messages,
+            'fileName': 'global_chat.json'
+        }
+        
+        with open(global_chat_file, 'w', encoding='utf-8') as f:
+            json.dump(chat_data, f, indent=2, ensure_ascii=False)
+            
+    except Exception as e:
+        print(f"Error saving global chat message: {e}")
+
 
 if __name__ == '__main__':
     # app.run(debug=True, host="0.0.0.0", port=1298)

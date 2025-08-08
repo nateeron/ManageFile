@@ -1,0 +1,25 @@
+{
+  "clientName": "Fe3",
+  "lastUpdated": "2025-08-08T16:38:41.163510",
+  "messages": [
+    {
+      "sender": "Fe3",
+      "message": "asdasd",
+      "timestamp": "2025-08-08T09:34:05.867Z",
+      "type": "own"
+    },
+    {
+      "message": "asdasd",
+      "sender": "Fe3",
+      "timestamp": "2025-08-08T09:34:05.867Z",
+      "type": "own"
+    },
+    {
+      "sender": "Fe3",
+      "message": "888",
+      "timestamp": "2025-08-08T09:38:41.151Z",
+      "type": "own"
+    }
+  ],
+  "fileName": "Fe3.json"
+}
