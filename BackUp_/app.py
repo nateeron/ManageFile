@@ -13,15 +13,16 @@ import io
 
 app = Flask(__name__, template_folder="templates")
 socketio = SocketIO(app, cors_allowed_origins="*") 
+
 def check_System():
     system_info = platform.system()
-
+   
     if system_info == "Windows":
         # List all available drives (C:, D:, E:, etc.)
         drives = [f"{d}:/" for d in string.ascii_uppercase if os.path.exists(f"{d}:/")]
         return drives  # Return list of drives
     elif system_info == "Linux":
-        if "Android" in platform.uname():  # Checking for Android system
+        if "Linux" in platform.uname():  # Checking for Android system
             return ["/storage/emulated/0"]  # Android Internal Storage
         else:
             # For Ubuntu/Linux, list all mounted file systems
@@ -34,7 +35,6 @@ def check_System():
             return mounts
     else:
         return [os.getcwd()]  # Default to current working directory
-
 @app.route('/')
 def index():
       drives = check_System()

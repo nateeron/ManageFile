@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_imageZoom.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_Drag_Coverage.css') }}" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script_Drag_Coverage.js') }}"></script>
+    <script src="https://kit.fontawesome.com/cdbdc0e61f.js" crossorigin="anonymous"></script>
+  </head>
+
+  <body>
+    <div class="selection-box"></div>
+
+    <div id="popup" class="popup">
+      <div class="popup-content">
+        <span id="close" class="close">&times;</span>
+        <h3>Enter Folder Name</h3>
+        <input type="text" id="folderName" placeholder="Folder Name" />
+        <button class="custom-btn" id="createFolderBtn">Create Folder</button>
+      </div>
+    </div>
+    <div class="container-upload">
+      <h2>📂 Upload Files & Folders</h2>
+
+      <input class="custom-btn" type="file" accept="video/*" id="fileInput" multiple />
+      <button class="custom-btn" onclick="uploadFiles()">Upload</button>
+
+      <div class="flex d-none" id="progressContainer">
+        <div class="progress">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <span id="progressText">0%</span>
+      </div>
+    </div>
+    <div class="flex d-none" id="progress_zip">
+      <p id="progress_text">Progress zip: 0%</p>
+      <progress id="progress_bar" value="0" max="100"></progress>
+    </div>
+    <div class="tabMenu">
+      <div style="width: 100%;">
+        <label class="txt_path">{{ system_path }}</label>
+        <input type="text" class="d-none" id="system_path" value="{{ system_path }}" />
+      </div>
+      <div class="bt_bar">
+        <button class="custom-btn" id="NewFolder">+ New Folder</button>
+
+        <button class="custom-btn d-none" id="selectDownload" onclick="downloadSelectedFiles()">Download</button>
+
+        <button id="deleteBtn" class="custom-btn Delete d-none">Delete</button>
+      </div>
+      <div class="bar_MenuView">
+        <div class="item_menu">
+          <i class="fa-solid fa-table-cells"></i>
+        </div>
+        <div class="item_menu">
+          <i class="fa-regular fa-rectangle-list"></i>
+        </div>
+        <div class="item_menu">
+          <i class="fa-solid fa-bars"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="menu_left" id="driveSelect">
+        {% for drive in drives %}
+          <div class="i-menu {% if drive == system_path %}active{% endif %}" onclick="selectdive(this)">{{ drive }}</div>
+        {% endfor %}
+      </div>
+      <div style="width: 100%; height: 100%;">
+      <div class="box-item-drive drag-area" id="dropZone">
+        {% for folder in folders %}
+          <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ folder }}')" ondblclick="handleDoubleClick('{{ system_path }}', '{{ folder }}')">
+            <div class="item item_folder selectable-item">
+              <div class="row">
+                <i class="fa-solid fa-folder"></i>
+              </div>
+              <div class="row">
+                <div class="txt">{{ folder }}</div>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+
+        {% for file, type in file_types.items() %}
+          <a class="folder-link" ondblclick="handleTextFileDoubleClick('{{ system_path }}', '{{ file }}', '{{ type }}')" onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
+            {% if type == 'jpg' or type == 'png' %}
+              <div class="folder-link item item_img selectable-item">
+                <div class="row">
+                  <!-- <i class="fa-solid fa-image"></i> -->
+
+                  <div class="image-item">
+                    <img onclick="openDialog(this.src)" src="./getimage/{{ file }}?path={{ system_path }}" alt="Image" />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="txt">{{ file }}</div>
+                </div>
+              </div>
+            {% elif type == 'rar' or type == 'zip' %}
+              <div class="item item_rar selectable-item">
+                <div class="row">
+                  <i class="fa-solid fa-file-zipper rar"></i>
+                </div>
+                <div class="row">
+                  <div class="txt">{{ file }}</div>
+                </div>
+              </div>
+            {% elif type == 'dll' %}
+              <div class="item item_dll selectable-item">
+                <div class="row">
+                  <i class="fa-regular fa-file-lines"></i>
+                </div>
+                <div class="row">
+                  <div class="txt">{{ file }}</div>
+                </div>
+              </div>
+            {% elif type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' %}
+              <div class="item item_txt selectable-item">
+                <div class="row">
+                  <i class="fa-regular fa-file-lines"></i>
+                </div>
+                <div class="row">
+                  <div class="txt">{{ file }}</div>
+                </div>
+              </div>
+            {% elif type == 'mp4' %}
+              <div class="item item_video selectable-item">
+                <div class="row">
+                  <i class="fa-solid fa-file-video"></i>
+                </div>
+                <div class="row">
+                  <div class="txt">{{ file }}</div>
+                </div>
+              </div>
+            {% else %}
+              <div class="item item_orthor selectable-item">
+                <div class="row">
+                  <i class="fa-solid fa-file"></i>
+                </div>
+                <div class="row">
+                  <div class="txt">{{ file }}</div>
+                </div>
+              </div>
+            {% endif %}
+          </a>
+        {% endfor %}
+        <!-- <i class="fa-solid fa-question"></i> -->
+      </div>
+    </div>
+  </div>
+
+    <style>
+      .boxZoom {
+        width: 500px;
+      }
+      .text-editor-dialog {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .text-editor-content {
+        background-color: #2d2d2d;
+        border-radius: 8px;
+        width: 90%;
+        height: 90%;
+        display: flex;
+        flex-direction: column;
+        color: white;
+      }
+      .text-editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        border-bottom: 1px solid #444;
+        background-color: #1e1e1e;
+        border-radius: 8px 8px 0 0;
+      }
+      .text-editor-title {
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .text-editor-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 5px;
+      }
+             .text-editor-body {
+         flex: 1;
+         display: flex;
+         flex-direction: column;
+         padding: 10px;
+       }
+       .text-editor-code-container {
+         flex: 1;
+         display: flex;
+         background-color: #1e1e1e;
+         border: 1px solid #444;
+         border-radius: 4px;
+         overflow: hidden;
+       }
+       .text-editor-line-numbers {
+         background-color: #252526;
+         color: #858585;
+         padding: 10px 8px;
+         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+         font-size: 14px;
+         line-height: 1.5;
+         text-align: right;
+         border-right: 1px solid #444;
+         min-width: 50px;
+         user-select: none;
+         overflow-y: hidden;
+       }
+       .text-editor-textarea {
+         flex: 1;
+         background-color: transparent;
+         color: transparent;
+         caret-color: #d4d4d4;
+         border: none;
+         padding: 10px;
+         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+         font-size: 14px;
+         line-height: 1.5;
+         resize: none;
+         outline: none;
+         tab-size: 4;
+         -moz-tab-size: 4;
+         -webkit-tab-size: 4;
+       }
+      .text-editor-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 10px 0;
+      }
+      .text-editor-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .text-editor-btn-save {
+        background-color: #007acc;
+        color: white;
+      }
+      .text-editor-btn-cancel {
+        background-color: #666;
+        color: white;
+      }
+      .text-editor-btn:hover {
+        opacity: 0.8;
+      }
+      
+             /* VSCode Dark+ Theme Syntax Highlighting */
+       .syntax-python {
+         color: #d4d4d4;
+       }
+       .syntax-python .keyword { color: #569cd6; }
+       .syntax-python .string { color: #ce9178; }
+       .syntax-python .comment { color: #6a9955; }
+       .syntax-python .function { color: #dcdcaa; }
+       .syntax-python .class { color: #4ec9b0; }
+       .syntax-python .number { color: #b5cea8; }
+       .syntax-python .operator { color: #d4d4d4; }
+       
+       .syntax-html {
+         color: #d4d4d4;
+       }
+       .syntax-html .tag { color: #569cd6; }
+       .syntax-html .attribute { color: #9cdcfe; }
+       .syntax-html .string { color: #ce9178; }
+       .syntax-html .comment { color: #6a9955; }
+       .syntax-html .doctype { color: #569cd6; }
+       
+       .syntax-javascript {
+         color: #d4d4d4;
+       }
+       .syntax-javascript .keyword { color: #569cd6; }
+       .syntax-javascript .string { color: #ce9178; }
+       .syntax-javascript .comment { color: #6a9955; }
+       .syntax-javascript .function { color: #dcdcaa; }
+       .syntax-javascript .number { color: #b5cea8; }
+       .syntax-javascript .operator { color: #d4d4d4; }
+       .syntax-javascript .boolean { color: #569cd6; }
+       .syntax-javascript .null { color: #569cd6; }
+       
+       .syntax-json {
+         color: #d4d4d4;
+       }
+       .syntax-json .key { color: #9cdcfe; }
+       .syntax-json .string { color: #ce9178; }
+       .syntax-json .number { color: #b5cea8; }
+       .syntax-json .boolean { color: #569cd6; }
+       .syntax-json .null { color: #569cd6; }
+       
+       .syntax-ini {
+         color: #d4d4d4;
+       }
+       .syntax-ini .section { color: #569cd6; }
+       .syntax-ini .key { color: #9cdcfe; }
+       .syntax-ini .string { color: #ce9178; }
+       .syntax-ini .comment { color: #6a9955; }
+       
+       .syntax-text {
+         color: #d4d4d4;
+       }
+       
+       .highlighted-content {
+         background-color: #1e1e1e;
+         color: #d4d4d4;
+       }
+       
+       /* Code editor specific styles */
+       .code-editor-mode .text-editor-title {
+         color: #007acc;
+       }
+       .code-editor-mode .text-editor-header {
+         background-color: #2d2d30;
+         border-bottom: 2px solid #007acc;
+       }
+       .code-editor-mode .text-editor-code-container {
+         border: 1px solid #007acc;
+       }
+       .code-editor-mode .text-editor-line-numbers {
+         background-color: #252526;
+         color: #007acc;
+         border-right: 1px solid #007acc;
+       }
+      
+      .text-editor-status {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 10px;
+        background-color: #1e1e1e;
+        border-top: 1px solid #444;
+        font-size: 12px;
+        color: #888;
+      }
+    </style>
+    <div class="boxZoom">
+      <!-- Dialog overlay -->
+      <div class="dialog-overlay" id="dialog-contentz">
+        <!-- Dialog content -->
+        <div style="width: 100%;text-align: end;">
+          <i class="fa-solid fa-xmark close-button" onclick="closeDialog()"></i>
+        </div>
+        <div class="dialog-content" id="dialog-content" style="transform: scale(0.9); display: flex; justify-content: center; align-items: center; width: 100%;">
+          <!-- Content inside the dialog goes here -->
+
+          <img class="dialog-image" id="dialog-image" src="" alt="Zoomed Image" style="height: 100%;" />
+          <!-- Close button -->
+        </div>
+        <div class="percen" id="zoom-show">
+          <span id="zoom-sizeimage">100%</span>
+        </div>
+        <div class="sizeimage">
+          <span id="sizeimage"></span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Text Editor Dialog -->
+    <div class="text-editor-dialog" id="textEditorDialog">
+      <div class="text-editor-content">
+        <div class="text-editor-header">
+          <div class="text-editor-title" id="textEditorTitle">Text Editor</div>
+          <button class="text-editor-close" onclick="closeTextEditor()">&times;</button>
+        </div>
+        <div class="text-editor-body">
+          <div class="text-editor-code-container">
+            <div class="text-editor-line-numbers" id="textEditorLineNumbers"></div>
+            <textarea class="text-editor-textarea" id="textEditorTextarea" spellcheck="false"></textarea>
+          </div>
+          <div class="text-editor-status" id="textEditorStatus">
+            <span id="textEditorInfo">Line 1, Column 1</span>
+            <span id="textEditorType"></span>
+          </div>
+        </div>
+        <div class="text-editor-footer">
+          <button class="text-editor-btn text-editor-btn-cancel" onclick="closeTextEditor()">Cancel</button>
+          <button class="text-editor-btn text-editor-btn-save" onclick="saveTextFile()">Save</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      function uploadFiles(files = null) {
+        $('#progressContainer').removeClass('d-none')
+        let fileInput = document.getElementById('fileInput')
+        const system_path = $('#system_path').val()
+      
+        let selectedFiles = files || fileInput.files
+        console.log(selectedFiles)
+        if (selectedFiles.length === 0) {
+          alert('Please select files or folders to upload!')
+          return
+        }
+      
+        let formData = new FormData()
+        for (let i = 0; i < selectedFiles.length; i++) {
+          formData.append('files', selectedFiles[i], selectedFiles[i].webkitRelativePath || selectedFiles[i].relativePath || selectedFiles[i].name)
+        }
+        formData.append('system_path', system_path)
+        for (let [key, value] of formData.entries()) {
+          console.log(`${key}:`, value)
+        }
+        let progressBar = document.getElementById('progressBar')
+        let progressText = document.getElementById('progressText')
+        progressBar.style.width = '0%'
+        progressText.innerText = '0%'
+      
+        fetch('/upload/', {
+          method: 'POST',
+          body: formData
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            //let uploadedFilesList = document.getElementById("uploadedFiles");
+            //data.files.forEach(file => {
+            //      let listItem = document.createElement("li");
+            //      listItem.textContent = file;
+            //      uploadedFilesList.appendChild(listItem);
+            //});
+      
+            progressBar.style.width = '100%'
+            progressText.innerText = '100%'
+            location.reload(true)
+            $('#progressContainer').addClass('d-none')
+            $('#progress_zip').addClass('d-none')
+          })
+          .catch((error) => {
+            console.error('Upload failed:', error)
+            $('#progressContainer').addClass('d-none')
+            $('#progress_zip').addClass('d-none')
+          })
+      }
+      
+      document.getElementById('dropZone').addEventListener('drop', function (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      
+        let items = event.dataTransfer.items
+        let files = []
+      
+        function readDirectory(entry, path = '') {
+          if (entry.isFile) {
+            entry.file((file) => {
+              file.relativePath = path + file.name // Preserve folder structure
+              files.push(file)
+            })
+          } else if (entry.isDirectory) {
+            let dirReader = entry.createReader()
+            dirReader.readEntries((entries) => {
+              entries.forEach((subEntry) => readDirectory(subEntry, path + entry.name + '/'))
+            })
+          }
+        }
+      
+        for (let item of items) {
+          let entry = item.webkitGetAsEntry()
+          if (entry) {
+            readDirectory(entry)
+          }
+        }
+      
+        setTimeout(() => {
+          console.log('Files:', files)
+          uploadFiles(files)
+        }, 1000)
+      })
+      
+      document.getElementById('dropZone').addEventListener('dragover', function (event) {
+        event.preventDefault()
+        event.stopPropagation()
+      })
+      
+      // Listen for progress updates from server
+      socket.on('upload_progress', function (data) {
+        let progressBar = document.getElementById('progressBar')
+        let progressText = document.getElementById('progressText')
+        progressBar.style.width = data.progress + '%'
+        progressText.innerText = data.progress + '%'
+      })
+      
+      $('#deleteBtn').click(function () {
+        const selectedItems_ = [...selectedItems, ...selectedfile]
+        let strName = ''
+        for (let s of selectedItems_) {
+          strName += s
+        }
+        let pathToDelete = strName // $("#pathInput").val(); // Get path from input field
+      
+        if (!pathToDelete) {
+          alert('Please enter a file/folder path.')
+          return
+        }
+        const system_path = $('#system_path').val()
+      
+        console.log('system_path', system_path)
+        console.log('Delete', selectedItems_)
+        // Show confirmation popup
+        if (confirm(`Are you sure you want to delete: ${pathToDelete}?`)) {
+          const requestBody = {
+            system_path: system_path,
+            folders: selectedItems_
+          }
+          fetch('/delete', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+              'Content-Type': 'application/json' // Specify the content type
+            }
+          })
+            .then((response) => {
+              // Check if the response status is ok (200-299)
+              if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`)
+              }
+              return response.json() // Parse the JSON response
+            })
+            .then((data) => {
+              // Assuming the server returns a message in the response
+              // alert(data.message);
+              location.reload(true)
+            })
+            .catch((error) => {
+              // Log any error that occurs during the request
+              console.error('Error:', error)
+              alert('There was an error processing your request.')
+            })
+        }
+      })
+      
+      $('#NewFolder').click(function () {
+        $('#popup').css('display', 'flex')
+      })
+      $('#close').click(function () {
+        $('#popup').css('display', 'none')
+      })
+      
+      $('#createFolderBtn').click(function () {
+        let folderName = $('#folderName').val() // Get folder name from input field
+        let path = $('#system_path').val() // Define the base path where the folder will be created
+      
+        if (!folderName) {
+          alert('Please enter a folder name!')
+          return
+        }
+      
+        // Send POST request to the server to create the folder
+        $.ajax({
+          url: '/create_folder', // Adjust the API endpoint as needed
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            system_path: path,
+            folder_name: folderName
+          }),
+          success: function (response) {
+            //  alert(response.message);  // Show success message
+            $('#popup').hide() // Close the popup after folder creation
+            $('#folderName').val('')
+            location.reload(true)
+            //
+          },
+          error: function (xhr, status, error) {
+            alert('Error creating folder: ' + xhr.responseJSON.error) // Show error message
+          }
+        })
+      })
+
+      // Text Editor Variables
+      let currentTextFilePath = '';
+      let currentTextFileType = '';
+
+      // Handle double-click on text files
+      function handleTextFileDoubleClick(systemPath, fileName, fileType) {
+        // Check if it's a supported text file type
+        const supportedTypes = ['txt', 'py', 'ini', 'html', 'js', 'json'];
+        if (!supportedTypes.includes(fileType)) {
+          return; // Do nothing for non-text files
+        }
+
+        currentTextFilePath = systemPath;
+        currentTextFileType = fileType;
+        
+        // Load the file content
+        loadTextFile(systemPath, fileName);
+      }
+
+             // Load text file content
+       function loadTextFile(systemPath, fileName) {
+         fetch('/read_text_file', {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({
+             system_path: systemPath,
+             file_name: fileName
+           })
+         })
+         .then(response => response.json())
+         .then(data => {
+           if (data.success) {
+             document.getElementById('textEditorTitle').textContent = `Text Editor - ${fileName}`;
+             document.getElementById('textEditorTextarea').value = data.content;
+             document.getElementById('textEditorDialog').style.display = 'flex';
+             
+             // Set syntax highlighting based on file type
+             setSyntaxHighlighting(currentTextFileType);
+             
+             // Update line numbers
+             updateLineNumbers();
+             
+             // Update status bar
+             updateTextEditorStatus();
+             document.getElementById('textEditorType').textContent = currentTextFileType.toUpperCase();
+           } else {
+             alert('Error loading file: ' + data.error);
+           }
+         })
+         .catch(error => {
+           console.error('Error:', error);
+           alert('Error loading file');
+         });
+       }
+
+      // Save text file
+      function saveTextFile() {
+        const content = document.getElementById('textEditorTextarea').value;
+        const fileName = document.getElementById('textEditorTitle').textContent.split(' - ')[1];
+        
+        fetch('/save_text_file', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            system_path: currentTextFilePath,
+            file_name: fileName,
+            content: content
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('File saved successfully!');
+            closeTextEditor();
+          } else {
+            alert('Error saving file: ' + data.error);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error saving file');
+        });
+      }
+
+             // Close text editor
+       function closeTextEditor() {
+         document.getElementById('textEditorDialog').style.display = 'none';
+         document.getElementById('textEditorTextarea').value = '';
+         document.getElementById('textEditorDialog').classList.remove('code-editor-mode');
+         document.getElementById('textEditorLineNumbers').innerHTML = '';
+         
+         // Remove highlighted content
+         const highlightedDiv = document.querySelector('.highlighted-content');
+         if (highlightedDiv) {
+           highlightedDiv.remove();
+         }
+         
+         currentTextFilePath = '';
+         currentTextFileType = '';
+       }
+
+             // Set syntax highlighting based on file type
+       function setSyntaxHighlighting(fileType) {
+         const textarea = document.getElementById('textEditorTextarea');
+         const dialog = document.getElementById('textEditorDialog');
+         
+         // Remove existing syntax highlighting classes
+         textarea.className = 'text-editor-textarea';
+         dialog.classList.remove('code-editor-mode');
+         
+         // Add syntax highlighting classes based on file type
+         switch(fileType) {
+           case 'py':
+             textarea.classList.add('syntax-python');
+             dialog.classList.add('code-editor-mode');
+             applyVSCodeHighlighting('python');
+             break;
+           case 'html':
+             textarea.classList.add('syntax-html');
+             dialog.classList.add('code-editor-mode');
+             applyVSCodeHighlighting('html');
+             break;
+           case 'js':
+             textarea.classList.add('syntax-javascript');
+             dialog.classList.add('code-editor-mode');
+             applyVSCodeHighlighting('javascript');
+             break;
+           case 'json':
+             textarea.classList.add('syntax-json');
+             dialog.classList.add('code-editor-mode');
+             applyVSCodeHighlighting('json');
+             break;
+           case 'ini':
+             textarea.classList.add('syntax-ini');
+             applyVSCodeHighlighting('ini');
+             break;
+           case 'txt':
+             textarea.classList.add('syntax-text');
+             break;
+         }
+       }
+       
+       // Apply VSCode-style syntax highlighting
+       function applyVSCodeHighlighting(language) {
+         const textarea = document.getElementById('textEditorTextarea');
+         const content = textarea.value;
+         
+         // Create a temporary div to hold the highlighted content
+         const tempDiv = document.createElement('div');
+         tempDiv.style.position = 'absolute';
+         tempDiv.style.top = '0';
+         tempDiv.style.left = '0';
+         tempDiv.style.width = '100%';
+         tempDiv.style.height = '100%';
+         tempDiv.style.padding = '10px';
+         tempDiv.style.fontFamily = 'Consolas, Monaco, Courier New, monospace';
+         tempDiv.style.fontSize = '14px';
+         tempDiv.style.lineHeight = '1.5';
+         tempDiv.style.backgroundColor = 'transparent';
+         tempDiv.style.border = 'none';
+         tempDiv.style.outline = 'none';
+         tempDiv.style.resize = 'none';
+         tempDiv.style.overflow = 'auto';
+         tempDiv.style.whiteSpace = 'pre-wrap';
+         tempDiv.style.wordWrap = 'break-word';
+         tempDiv.style.pointerEvents = 'none';
+         tempDiv.style.zIndex = '1';
+         
+         // Apply highlighting based on language
+         let highlightedContent = '';
+         
+         switch(language) {
+           case 'python':
+             highlightedContent = highlightPython(content);
+             break;
+           case 'html':
+             highlightedContent = highlightHTML(content);
+             break;
+           case 'javascript':
+             highlightedContent = highlightJavaScript(content);
+             break;
+           case 'json':
+             highlightedContent = highlightJSON(content);
+             break;
+           case 'ini':
+             highlightedContent = highlightINI(content);
+             break;
+           default:
+             highlightedContent = content;
+         }
+         
+         tempDiv.innerHTML = highlightedContent;
+         
+         // Position the highlighted div over the textarea
+         const textareaRect = textarea.getBoundingClientRect();
+         const dialogRect = document.getElementById('textEditorDialog').getBoundingClientRect();
+         
+         tempDiv.style.position = 'fixed';
+         tempDiv.style.top = (textareaRect.top - dialogRect.top + 10) + 'px';
+         tempDiv.style.left = (textareaRect.left - dialogRect.left + 10) + 'px';
+         tempDiv.style.width = (textareaRect.width - 20) + 'px';
+         tempDiv.style.height = (textareaRect.height - 20) + 'px';
+         
+         // Remove existing highlighted div
+         const existingDiv = document.querySelector('.highlighted-content');
+         if (existingDiv) {
+           existingDiv.remove();
+         }
+         
+         tempDiv.className = 'highlighted-content';
+         document.getElementById('textEditorDialog').appendChild(tempDiv);
+         
+         // Sync scroll between textarea and highlighted div
+         textarea.addEventListener('scroll', function() {
+           tempDiv.scrollTop = textarea.scrollTop;
+           tempDiv.scrollLeft = textarea.scrollLeft;
+         });
+         
+         // Update highlighting when text changes
+         textarea.addEventListener('input', function() {
+           setTimeout(() => applyVSCodeHighlighting(language), 10);
+         });
+       }
+       
+                // Python syntax highlighting
+         function highlightPython(code) {
+           const keywords = ['def', 'class', 'import', 'from', 'as', 'if', 'else', 'elif', 'for', 'while', 'try', 'except', 'finally', 'with', 'return', 'yield', 'break', 'continue', 'pass', 'raise', 'True', 'False', 'None', 'and', 'or', 'not', 'in', 'is', 'lambda', 'global', 'nonlocal', 'del', 'assert'];
+           const functions = ['print', 'len', 'str', 'int', 'float', 'list', 'dict', 'set', 'tuple', 'range', 'enumerate', 'zip', 'map', 'filter', 'reduce', 'sorted', 'reversed', 'open', 'type', 'isinstance', 'hasattr', 'getattr', 'setattr', 'dir', 'help', 'id', 'hash', 'abs', 'round', 'min', 'max', 'sum'];
+           
+           let highlighted = code
+             // Comments
+             .replace(/(#.*$)/gm, '<span class="comment">$1</span>')
+             // Strings
+             .replace(/(['"`])((?:(?!\1)[^\\]|\\.)*)\1/g, '<span class="string">$1$2$1</span>')
+             // Numbers
+             .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="number">$1</span>')
+             // Keywords
+             .replace(new RegExp('\\b(' + keywords.join('|') + ')\\b', 'g'), '<span class="keyword">$1</span>')
+             // Functions
+             .replace(new RegExp('\\b(' + functions.join('|') + ')\\b(?=\\s*\\()', 'g'), '<span class="function">$1</span>')
+             // Class definitions
+             .replace(/\bclass\s+(\w+)/g, '<span class="keyword">class</span> <span class="class">$1</span>')
+             // Function definitions
+             .replace(/\bdef\s+(\w+)/g, '<span class="keyword">def</span> <span class="function">$1</span>');
+           
+           return highlighted;
+         }
+       
+       // HTML syntax highlighting
+       function highlightHTML(code) {
+         let highlighted = code
+           // Comments
+           .replace(/()/g, '<span class="comment">$1</span>')
+           // DOCTYPE
+           .replace(/(<!DOCTYPE[^>]*>)/gi, '<span class="doctype">$1</span>')
+           // Tags
+           .replace(/(<\/?[a-zA-Z][a-zA-Z0-9]*)/g, '<span class="tag">$1</span>')
+           // Attributes
+           .replace(/(\s+[a-zA-Z-]+)(=)/g, '<span class="attribute">$1</span>$2')
+           // Attribute values
+           .replace(/(=)(["'][^"']*["'])/g, '$1<span class="string">$2</span>')
+           // Closing tags
+           .replace(/(>)/g, '<span class="tag">$1</span>');
+         
+         return highlighted;
+       }
+       
+                // JavaScript syntax highlighting
+         function highlightJavaScript(code) {
+           const keywords = ['function', 'var', 'let', 'const', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'default', 'break', 'continue', 'return', 'throw', 'try', 'catch', 'finally', 'class', 'extends', 'super', 'new', 'delete', 'typeof', 'instanceof', 'void', 'null', 'undefined', 'true', 'false', 'in', 'of', 'yield', 'await', 'async', 'export', 'import', 'from', 'as'];
+           
+           let highlighted = code
+             // Comments
+             .replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>')
+             .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="comment">$1</span>')
+             // Strings
+             .replace(/(['"`])((?:(?!\1)[^\\]|\\.)*)\1/g, '<span class="string">$1$2$1</span>')
+             // Numbers
+             .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="number">$1</span>')
+             // Keywords
+             .replace(new RegExp('\\b(' + keywords.join('|') + ')\\b', 'g'), '<span class="keyword">$1</span>')
+             // Function declarations
+             .replace(/\bfunction\s+(\w+)/g, '<span class="keyword">function</span> <span class="function">$1</span>')
+             // Function calls
+             .replace(/\b(\w+)(?=\s*\()/g, '<span class="function">$1</span>');
+           
+           return highlighted;
+         }
+       
+       // JSON syntax highlighting
+       function highlightJSON(code) {
+         let highlighted = code
+           // Keys
+           .replace(/"([^"]+)":/g, '<span class="string">"$1"</span>:')
+           // Strings
+           .replace(/"([^"]*)"(?=\s*[,}\]]|$)/g, '<span class="string">"$1"</span>')
+           // Numbers
+           .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="number">$1</span>')
+           // Booleans
+           .replace(/\b(true|false)\b/g, '<span class="boolean">$1</span>')
+           // Null
+           .replace(/\bnull\b/g, '<span class="null">null</span>');
+         
+         return highlighted;
+       }
+       
+       // INI syntax highlighting
+       function highlightINI(code) {
+         let highlighted = code
+           // Sections
+           .replace(/^(\[[^\]]+\])/gm, '<span class="section">$1</span>')
+           // Comments
+           .replace(/(;.*$)/gm, '<span class="comment">$1</span>')
+           // Keys
+           .replace(/^([^=]+)=/gm, '<span class="key">$1</span>=')
+           // Values
+           .replace(/=([^;\n]*)/g, '=<span class="string">$1</span>');
+         
+         return highlighted;
+       }
+
+      // Add keyboard shortcuts for text editor
+      document.addEventListener('keydown', function(event) {
+        const textEditor = document.getElementById('textEditorDialog');
+        if (textEditor.style.display === 'flex') {
+          // Ctrl+S to save
+          if (event.ctrlKey && event.key === 's') {
+            event.preventDefault();
+            saveTextFile();
+          }
+          // Ctrl+Q or Escape to close
+          if ((event.ctrlKey && event.key === 'q') || event.key === 'Escape') {
+            event.preventDefault();
+            closeTextEditor();
+          }
+        }
+      });
+
+             // Update line numbers
+       function updateLineNumbers() {
+         const textarea = document.getElementById('textEditorTextarea');
+         const lineNumbers = document.getElementById('textEditorLineNumbers');
+         const text = textarea.value;
+         const lines = text.split('\n');
+         
+         let lineNumbersHTML = '';
+         for (let i = 1; i <= lines.length; i++) {
+           lineNumbersHTML += '<div>' + i + '</div>';
+         }
+         
+         lineNumbers.innerHTML = lineNumbersHTML;
+         
+         // Sync scroll between textarea and line numbers
+         lineNumbers.scrollTop = textarea.scrollTop;
+       }
+       
+       // Update text editor status bar
+       function updateTextEditorStatus() {
+         const textarea = document.getElementById('textEditorTextarea');
+         const status = document.getElementById('textEditorInfo');
+         
+         function updateStatus() {
+           const cursorPos = textarea.selectionStart;
+           const text = textarea.value;
+           const lines = text.substring(0, cursorPos).split('\n');
+           const line = lines.length;
+           const column = lines[lines.length - 1].length + 1;
+           
+           status.textContent = `Line ${line}, Column ${column}`;
+           
+           // Update line numbers when text changes
+           updateLineNumbers();
+         }
+         
+         // Remove existing event listeners to prevent duplicates
+         textarea.removeEventListener('input', updateStatus);
+         textarea.removeEventListener('click', updateStatus);
+         textarea.removeEventListener('keyup', updateStatus);
+         textarea.removeEventListener('scroll', updateLineNumbers);
+         
+         // Add new event listeners
+         textarea.addEventListener('input', updateStatus);
+         textarea.addEventListener('click', updateStatus);
+         textarea.addEventListener('keyup', updateStatus);
+         textarea.addEventListener('scroll', updateLineNumbers);
+         
+         // Initial update
+         updateStatus();
+       }
+    </script>
+  </body>
+  <script src="{{ url_for('static', filename='java_imagezoom.js') }}"></script>
+</html>
