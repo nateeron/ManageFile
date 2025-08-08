@@ -1,0 +1,31 @@
+{
+  "name": "Test JSON File",
+  "version": "1.0.0",
+  "description": "A test JSON file for the text editor functionality",
+  "features": [
+    "JSON syntax highlighting",
+    "Code editing capabilities",
+    "Save functionality",
+    "Double-click to open"
+  ],
+  "settings": {
+    "theme": "dark",
+    "fontSize": 14,
+    "tabSize": 2,
+    "autoSave": true
+  },
+  "metadata": {
+    "created": "2024-01-01",
+    "lastModified": "2024-01-01",
+    "author": "File Manager"
+  },
+  "nested": {
+    "object": {
+      "with": {
+        "multiple": {
+          "levels": "of nesting"
+        }
+      }
+    }
+  }
+} 

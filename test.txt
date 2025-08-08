@@ -1,0 +1,9 @@
+This is a test text file.
+It contains multiple lines of text.
+You can edit this file using the text editor.
+
+Features:
+- Double-click to open
+- Edit content
+- Save changes
+- Syntax highlighting for different file types 

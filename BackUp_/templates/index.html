@@ -88,7 +88,7 @@
         {% endfor %}
 
         {% for file, type in file_types.items() %}
-          <a class="folder-link" ondblclick="handleTextFileDoubleClick('{{ system_path }}', '{{ file }}', '{{ type }}')" onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
+          <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
             {% if type == 'jpg' or type == 'png' %}
               <div class="folder-link item item_img selectable-item">
                 <div class="row">
@@ -120,7 +120,7 @@
                   <div class="txt">{{ file }}</div>
                 </div>
               </div>
-            {% elif type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' %}
+            {% elif type == 'txt' %}
               <div class="item item_txt selectable-item">
                 <div class="row">
                   <i class="fa-regular fa-file-lines"></i>
@@ -158,129 +158,6 @@
       .boxZoom {
         width: 500px;
       }
-      .text-editor-dialog {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      .text-editor-content {
-        background-color: #2d2d2d;
-        border-radius: 8px;
-        width: 90%;
-        height: 90%;
-        display: flex;
-        flex-direction: column;
-        color: white;
-      }
-      .text-editor-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 20px;
-        border-bottom: 1px solid #444;
-        background-color: #1e1e1e;
-        border-radius: 8px 8px 0 0;
-      }
-      .text-editor-title {
-        font-size: 16px;
-        font-weight: bold;
-      }
-      .text-editor-close {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-        padding: 5px;
-      }
-      .text-editor-body {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        padding: 10px;
-      }
-      .text-editor-textarea {
-        flex: 1;
-        background-color: #1e1e1e;
-        color: #d4d4d4;
-        border: 1px solid #444;
-        border-radius: 4px;
-        padding: 10px;
-        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        font-size: 14px;
-        resize: none;
-        outline: none;
-      }
-      .text-editor-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        padding: 10px 0;
-      }
-      .text-editor-btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-      .text-editor-btn-save {
-        background-color: #007acc;
-        color: white;
-      }
-      .text-editor-btn-cancel {
-        background-color: #666;
-        color: white;
-      }
-      .text-editor-btn:hover {
-        opacity: 0.8;
-      }
-      
-      /* Syntax highlighting for different file types */
-      .syntax-python {
-        color: #d4d4d4;
-      }
-      .syntax-html {
-        color: #d4d4d4;
-      }
-      .syntax-javascript {
-        color: #d4d4d4;
-      }
-      .syntax-ini {
-        color: #d4d4d4;
-      }
-      .syntax-text {
-        color: #d4d4d4;
-      }
-      .syntax-json {
-        color: #d4d4d4;
-      }
-      
-      /* Line numbers and better formatting */
-      .text-editor-textarea {
-        line-height: 1.5;
-        tab-size: 4;
-        -moz-tab-size: 4;
-        -webkit-tab-size: 4;
-      }
-      
-      .text-editor-status {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 10px;
-        background-color: #1e1e1e;
-        border-top: 1px solid #444;
-        font-size: 12px;
-        color: #888;
-      }
     </style>
     <div class="boxZoom">
       <!-- Dialog overlay -->
@@ -300,27 +177,6 @@
         </div>
         <div class="sizeimage">
           <span id="sizeimage"></span>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Text Editor Dialog -->
-    <div class="text-editor-dialog" id="textEditorDialog">
-      <div class="text-editor-content">
-        <div class="text-editor-header">
-          <div class="text-editor-title" id="textEditorTitle">Text Editor</div>
-          <button class="text-editor-close" onclick="closeTextEditor()">&times;</button>
-        </div>
-        <div class="text-editor-body">
-          <textarea class="text-editor-textarea" id="textEditorTextarea" spellcheck="false"></textarea>
-          <div class="text-editor-status" id="textEditorStatus">
-            <span id="textEditorInfo">Line 1, Column 1</span>
-            <span id="textEditorType"></span>
-          </div>
-        </div>
-        <div class="text-editor-footer">
-          <button class="text-editor-btn text-editor-btn-cancel" onclick="closeTextEditor()">Cancel</button>
-          <button class="text-editor-btn text-editor-btn-save" onclick="saveTextFile()">Save</button>
         </div>
       </div>
     </div>
@@ -509,175 +365,6 @@
           }
         })
       })
-
-      // Text Editor Variables
-      let currentTextFilePath = '';
-      let currentTextFileType = '';
-
-      // Handle double-click on text files
-      function handleTextFileDoubleClick(systemPath, fileName, fileType) {
-        // Check if it's a supported text file type
-        const supportedTypes = ['txt', 'py', 'ini', 'html', 'js', 'json'];
-        if (!supportedTypes.includes(fileType)) {
-          return; // Do nothing for non-text files
-        }
-
-        currentTextFilePath = systemPath;
-        currentTextFileType = fileType;
-        
-        // Load the file content
-        loadTextFile(systemPath, fileName);
-      }
-
-      // Load text file content
-      function loadTextFile(systemPath, fileName) {
-        fetch('/read_text_file', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            system_path: systemPath,
-            file_name: fileName
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            document.getElementById('textEditorTitle').textContent = `Text Editor - ${fileName}`;
-            document.getElementById('textEditorTextarea').value = data.content;
-            document.getElementById('textEditorDialog').style.display = 'flex';
-            
-            // Set syntax highlighting based on file type
-            setSyntaxHighlighting(currentTextFileType);
-            
-            // Update status bar
-            updateTextEditorStatus();
-            document.getElementById('textEditorType').textContent = currentTextFileType.toUpperCase();
-          } else {
-            alert('Error loading file: ' + data.error);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('Error loading file');
-        });
-      }
-
-      // Save text file
-      function saveTextFile() {
-        const content = document.getElementById('textEditorTextarea').value;
-        const fileName = document.getElementById('textEditorTitle').textContent.split(' - ')[1];
-        
-        fetch('/save_text_file', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            system_path: currentTextFilePath,
-            file_name: fileName,
-            content: content
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert('File saved successfully!');
-            closeTextEditor();
-          } else {
-            alert('Error saving file: ' + data.error);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('Error saving file');
-        });
-      }
-
-      // Close text editor
-      function closeTextEditor() {
-        document.getElementById('textEditorDialog').style.display = 'none';
-        document.getElementById('textEditorTextarea').value = '';
-        currentTextFilePath = '';
-        currentTextFileType = '';
-      }
-
-      // Set syntax highlighting based on file type
-      function setSyntaxHighlighting(fileType) {
-        const textarea = document.getElementById('textEditorTextarea');
-        
-        // Remove existing syntax highlighting classes
-        textarea.className = 'text-editor-textarea';
-        
-        // Add syntax highlighting classes based on file type
-        switch(fileType) {
-          case 'py':
-            textarea.classList.add('syntax-python');
-            break;
-          case 'html':
-            textarea.classList.add('syntax-html');
-            break;
-          case 'js':
-            textarea.classList.add('syntax-javascript');
-            break;
-          case 'ini':
-            textarea.classList.add('syntax-ini');
-            break;
-          case 'txt':
-            textarea.classList.add('syntax-text');
-            break;
-          case 'json':
-            textarea.classList.add('syntax-json');
-            break;
-        }
-      }
-
-      // Add keyboard shortcuts for text editor
-      document.addEventListener('keydown', function(event) {
-        const textEditor = document.getElementById('textEditorDialog');
-        if (textEditor.style.display === 'flex') {
-          // Ctrl+S to save
-          if (event.ctrlKey && event.key === 's') {
-            event.preventDefault();
-            saveTextFile();
-          }
-          // Ctrl+Q or Escape to close
-          if ((event.ctrlKey && event.key === 'q') || event.key === 'Escape') {
-            event.preventDefault();
-            closeTextEditor();
-          }
-        }
-      });
-
-      // Update text editor status bar
-      function updateTextEditorStatus() {
-        const textarea = document.getElementById('textEditorTextarea');
-        const status = document.getElementById('textEditorInfo');
-        
-        function updateStatus() {
-          const cursorPos = textarea.selectionStart;
-          const text = textarea.value;
-          const lines = text.substring(0, cursorPos).split('\n');
-          const line = lines.length;
-          const column = lines[lines.length - 1].length + 1;
-          
-          status.textContent = `Line ${line}, Column ${column}`;
-        }
-        
-        // Remove existing event listeners to prevent duplicates
-        textarea.removeEventListener('input', updateStatus);
-        textarea.removeEventListener('click', updateStatus);
-        textarea.removeEventListener('keyup', updateStatus);
-        
-        // Add new event listeners
-        textarea.addEventListener('input', updateStatus);
-        textarea.addEventListener('click', updateStatus);
-        textarea.addEventListener('keyup', updateStatus);
-        
-        // Initial update
-        updateStatus();
-      }
     </script>
   </body>
   <script src="{{ url_for('static', filename='java_imagezoom.js') }}"></script>

@@ -1,0 +1,113 @@
+.image-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin: -10px; /* Adjust as needed */
+}
+.image-item {
+    flex: 0 0 calc(25% - 20px); /* Adjust as needed */
+    box-sizing: border-box;
+    width: 60px;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+}
+.image-item img {
+    height: 50px;
+    display: block;
+}
+
+/* Define initial size */
+.hover-effect {
+    background-color: #ccc;
+    transition: transform 0.3s ease-in-out; /* Smooth transition */
+}
+
+/* Define size on hover */
+.hover-effect:hover {
+    transform: scale(1.03); /* Increase size by 3% */
+}
+
+/* Styling for the dialog */
+.dialog-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(62 62 63 / 88%); /* Semi-transparent background */
+    z-index: 9999;
+}
+
+.dialog-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* right: 0; */
+    bottom: 0;
+    margin: auto;
+    /* width: 50%; Adjust width as needed */
+    height: 50%; /* Adjust height as needed */
+    transform: translate(-50%, -50%);
+    transition: transform 0.9s ease;
+}
+.dialog-image {
+    box-shadow: 5px 3px 50px rgb(0 0 0 / 97%);
+}
+
+/* Styling for the close button */
+.close-button {
+    position: relative;
+    font-size: 20px;
+    cursor: pointer;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 3;
+}
+
+/* Zoom in effect */
+.zoom-in {
+    transform: scale(1.1);
+}
+
+/* Zoom out effect */
+.zoom-out {
+    transform: scale(0.9);
+}
+
+.percen {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    background: #63666ada;
+    font-size: larger;
+    color: rgba(240, 248, 255, 0.87);
+    width: 75px;
+    text-align: center;
+    border-radius: 5px;
+    padding: 4px;
+}
+
+.sizeimage {
+    position: absolute;
+    left: 50%;
+    top: 98%;
+    background: #63666a4a;
+    font-size: smaller;
+    color: aliceblue;
+    width: 300px;
+    text-align: center;
+    border-radius: 5px;
+    padding: 4px;
+}
+
+#zoom-show {
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.5s;
+}
+
+.show {
+    opacity: 1 !important; /* Show the element */
+}
