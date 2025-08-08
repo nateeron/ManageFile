@@ -11,6 +11,16 @@
     <script src="{{ url_for('static', filename='jquery-3.7.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='script_Drag_Coverage.js') }}"></script>
+    <!-- CodeMirror for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/sql/sql.min.js"></script>
     <script src="https://kit.fontawesome.com/cdbdc0e61f.js" crossorigin="anonymous"></script>
   </head>
 
@@ -121,7 +131,7 @@
                   <div class="txt">{{ file }}</div>
                 </div>
               </div>
-            {% elif type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' %}
+                         {% elif type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' or type == 'config' or type == 'log' or type == 'cs' or type == 'sql' or type == 'xml' or type == 'bat' or type == 'css' %}
               <div class="item item_txt selectable-item">
                 <div class="row">
                   <i class="fa-regular fa-file-lines"></i>
@@ -172,6 +182,17 @@
         align-items: center;
         z-index: 1000;
       }
+      /* Force overlay color for the dialog via ID with !important */
+      #textEditorDialog {
+        background-color: rgba(0, 0, 0, 0.8) !important;
+        z-index: 9999 !important;
+      }
+      /* Force inner elements to use intended colors */
+      #textEditorDialog .text-editor-content { background-color: #2d2d2d !important; }
+      #textEditorDialog .text-editor-header { background-color: #1e1e1e !important; border-bottom: 1px solid #444 !important; }
+      #textEditorDialog .text-editor-code-container { background-color: #1e1e1e !important; border: 1px solid #444 !important; }
+      #textEditorDialog .text-editor-line-numbers { background-color: #252526 !important; color: #858585 !important; border-right: 1px solid #444 !important; }
+      #textEditorDialog .text-editor-textarea { background-color: #1e1e1e !important; color: #d4d4d4 !important; }
       .text-editor-content {
         background-color: #2d2d2d;
         border-radius: 8px;
@@ -217,6 +238,42 @@
          border-radius: 4px;
          overflow: hidden;
        }
+       /* CodeMirror customization for VSCode-like appearance */
+       .CodeMirror {
+         height: 100% !important;
+         font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+         font-size: 14px !important;
+         line-height: 1.5 !important;
+         background-color: #1e1e1e !important;
+         color: #d4d4d4 !important;
+       }
+       .CodeMirror-gutters {
+         background-color: #252526 !important;
+         border-right: 1px solid #444 !important;
+         color: #858585 !important;
+       }
+       .CodeMirror-linenumber {
+         color: #858585 !important;
+       }
+       .CodeMirror-cursor {
+         border-left: 2px solid #007acc !important;
+       }
+       .CodeMirror-selected {
+         background-color: #264f78 !important;
+       }
+       /* VSCode Dark+ Theme Colors */
+       .cm-s-monokai .cm-keyword { color: #569cd6 !important; }
+       .cm-s-monokai .cm-string { color: #ce9178 !important; }
+       .cm-s-monokai .cm-comment { color: #6a9955 !important; }
+       .cm-s-monokai .cm-def { color: #dcdcaa !important; }
+       .cm-s-monokai .cm-variable { color: #9cdcfe !important; }
+       .cm-s-monokai .cm-number { color: #b5cea8 !important; }
+       .cm-s-monokai .cm-operator { color: #d4d4d4 !important; }
+       .cm-s-monokai .cm-property { color: #9cdcfe !important; }
+       .cm-s-monokai .cm-tag { color: #569cd6 !important; }
+       .cm-s-monokai .cm-attribute { color: #9cdcfe !important; }
+       .cm-s-monokai .cm-atom { color: #569cd6 !important; }
+       .cm-s-monokai .cm-builtin { color: #4ec9b0 !important; }
        .text-editor-line-numbers {
          background-color: #252526;
          color: #858585;
@@ -320,9 +377,75 @@
        .syntax-ini .string { color: #ce9178; }
        .syntax-ini .comment { color: #6a9955; }
        
-       .syntax-text {
-         color: #d4d4d4;
-       }
+               .syntax-text {
+          color: #d4d4d4;
+        }
+        
+        /* Additional syntax highlighting for new file types */
+        .syntax-csharp {
+          color: #d4d4d4;
+        }
+        .syntax-csharp .keyword { color: #569cd6; }
+        .syntax-csharp .string { color: #ce9178; }
+        .syntax-csharp .comment { color: #6a9955; }
+        .syntax-csharp .function { color: #dcdcaa; }
+        .syntax-csharp .class { color: #4ec9b0; }
+        .syntax-csharp .number { color: #b5cea8; }
+        .syntax-csharp .operator { color: #d4d4d4; }
+        .syntax-csharp .namespace { color: #569cd6; }
+        .syntax-csharp .using { color: #569cd6; }
+        
+        .syntax-sql {
+          color: #d4d4d4;
+        }
+        .syntax-sql .keyword { color: #569cd6; }
+        .syntax-sql .string { color: #ce9178; }
+        .syntax-sql .comment { color: #6a9955; }
+        .syntax-sql .function { color: #dcdcaa; }
+        .syntax-sql .number { color: #b5cea8; }
+        .syntax-sql .operator { color: #d4d4d4; }
+        .syntax-sql .table { color: #4ec9b0; }
+        .syntax-sql .column { color: #9cdcfe; }
+        
+        .syntax-config {
+          color: #d4d4d4;
+        }
+        .syntax-config .section { color: #569cd6; }
+        .syntax-config .key { color: #9cdcfe; }
+        .syntax-config .string { color: #ce9178; }
+        .syntax-config .comment { color: #6a9955; }
+        
+        .syntax-log {
+          color: #d4d4d4;
+        }
+                 .syntax-log .timestamp { color: #569cd6; }
+         .syntax-log .level { color: #ce9178; }
+         .syntax-log .message { color: #d4d4d4; }
+         
+         .syntax-batch {
+           color: #d4d4d4;
+         }
+         .syntax-batch .keyword { color: #569cd6; }
+         .syntax-batch .string { color: #ce9178; }
+         .syntax-batch .comment { color: #6a9955; }
+         .syntax-batch .function { color: #dcdcaa; }
+         .syntax-batch .variable { color: #9cdcfe; }
+         .syntax-batch .number { color: #b5cea8; }
+         .syntax-batch .operator { color: #d4d4d4; }
+                   .syntax-batch .command { color: #4ec9b0; }
+          
+          .syntax-css {
+            color: #d4d4d4;
+          }
+          .syntax-css .selector { color: #569cd6; }
+          .syntax-css .property { color: #9cdcfe; }
+          .syntax-css .string { color: #ce9178; }
+          .syntax-css .comment { color: #6a9955; }
+          .syntax-css .number { color: #b5cea8; }
+          .syntax-css .unit { color: #569cd6; }
+          .syntax-css .function { color: #dcdcaa; }
+          .syntax-css .color { color: #ce9178; }
+          .syntax-css .keyword { color: #569cd6; }
        
        /* Code editor specific styles */
        .code-editor-mode .text-editor-title {
@@ -381,11 +504,10 @@
           <div class="text-editor-title" id="textEditorTitle">Text Editor</div>
           <button class="text-editor-close" onclick="closeTextEditor()">&times;</button>
         </div>
-        <div class="text-editor-body">
-          <div class="text-editor-code-container">
-            <div class="text-editor-line-numbers" id="textEditorLineNumbers"></div>
-            <textarea class="text-editor-textarea" id="textEditorTextarea" spellcheck="false"></textarea>
-          </div>
+                 <div class="text-editor-body">
+           <div class="text-editor-code-container">
+             <textarea id="textEditorTextarea" spellcheck="false"></textarea>
+           </div>
           <div class="text-editor-status" id="textEditorStatus">
             <span id="textEditorInfo">Line 1, Column 1</span>
             <span id="textEditorType"></span>
@@ -586,14 +708,56 @@
       // Text Editor Variables
       let currentTextFilePath = '';
       let currentTextFileType = '';
+      let codeEditor = null;
 
-      // Handle double-click on text files
-      function handleTextFileDoubleClick(systemPath, fileName, fileType) {
-        // Check if it's a supported text file type
-        const supportedTypes = ['txt', 'py', 'ini', 'html', 'js', 'json'];
-        if (!supportedTypes.includes(fileType)) {
-          return; // Do nothing for non-text files
+      // Initialize CodeMirror editor
+      function initializeCodeEditor() {
+        if (codeEditor) {
+          codeEditor.toTextArea();
         }
+        
+        codeEditor = CodeMirror.fromTextArea(document.getElementById('textEditorTextarea'), {
+          mode: 'text/plain',
+          theme: 'monokai',
+          lineNumbers: true,
+          lineWrapping: false,
+          indentUnit: 4,
+          tabSize: 4,
+          indentWithTabs: false,
+          autoCloseBrackets: true,
+          matchBrackets: true,
+          showCursorWhenSelecting: true,
+          extraKeys: {
+            "Ctrl-S": function(cm) {
+              saveTextFile();
+            },
+            "Ctrl-Q": function(cm) {
+              closeTextEditor();
+            },
+            "Esc": function(cm) {
+              closeTextEditor();
+            }
+          }
+        });
+        
+        // Update status bar on cursor movement
+        codeEditor.on('cursorActivity', function() {
+          updateTextEditorStatus();
+        });
+        
+        // Update line numbers on content change
+        codeEditor.on('change', function() {
+          updateLineNumbers();
+        });
+      }
+
+                    // Handle double-click on text files
+        function handleTextFileDoubleClick(systemPath, fileName, fileType) {
+          // Check if it's a supported text file type
+          const supportedTypes = ['txt', 'py', 'ini', 'html', 'js', 'json', 'config', 'log', 'cs', 'sql', 'xml', 'bat', 'css'];
+          if (!supportedTypes.includes(fileType)) {
+            return; // Do nothing for non-text files
+          }
 
         currentTextFilePath = systemPath;
         currentTextFileType = fileType;
@@ -615,22 +779,34 @@
            })
          })
          .then(response => response.json())
-         .then(data => {
-           if (data.success) {
-             document.getElementById('textEditorTitle').textContent = `Text Editor - ${fileName}`;
-             document.getElementById('textEditorTextarea').value = data.content;
-             document.getElementById('textEditorDialog').style.display = 'flex';
-             
-             // Set syntax highlighting based on file type
-             setSyntaxHighlighting(currentTextFileType);
-             
-             // Update line numbers
-             updateLineNumbers();
-             
-             // Update status bar
-             updateTextEditorStatus();
-             document.getElementById('textEditorType').textContent = currentTextFileType.toUpperCase();
-           } else {
+                   .then(data => {
+            if (data.success) {
+              document.getElementById('textEditorTitle').textContent = `Text Editor - ${fileName}`;
+              // Initialize CodeMirror if not already done
+              if (!codeEditor) {
+                initializeCodeEditor();
+              }
+              
+              // Set content and mode
+              codeEditor.setValue(data.content);
+              setSyntaxHighlighting(currentTextFileType);
+              
+              document.getElementById('textEditorDialog').style.display = 'flex';
+              // Enforce overlay color with !important at runtime
+              document.getElementById('textEditorDialog')
+                .style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
+              document.getElementById('textEditorDialog')
+                .style.setProperty('display', 'flex', 'important');
+              
+              // Update status bar
+              updateTextEditorStatus();
+              document.getElementById('textEditorType').textContent = currentTextFileType.toUpperCase();
+              
+              // Refresh CodeMirror display
+              setTimeout(() => {
+                codeEditor.refresh();
+              }, 100);
+            } else {
              alert('Error loading file: ' + data.error);
            }
          })
@@ -642,7 +818,7 @@
 
       // Save text file
       function saveTextFile() {
-        const content = document.getElementById('textEditorTextarea').value;
+        const content = codeEditor.getValue();
         const fileName = document.getElementById('textEditorTitle').textContent.split(' - ')[1];
         
         fetch('/save_text_file', {
@@ -674,117 +850,89 @@
              // Close text editor
        function closeTextEditor() {
          document.getElementById('textEditorDialog').style.display = 'none';
-         document.getElementById('textEditorTextarea').value = '';
+         if (codeEditor) {
+           codeEditor.setValue('');
+         }
          document.getElementById('textEditorDialog').classList.remove('code-editor-mode');
-         document.getElementById('textEditorLineNumbers').innerHTML = '';
          currentTextFilePath = '';
          currentTextFileType = '';
        }
 
-             // Set syntax highlighting based on file type
-       function setSyntaxHighlighting(fileType) {
-         const textarea = document.getElementById('textEditorTextarea');
-         const dialog = document.getElementById('textEditorDialog');
-         
-         // Remove existing syntax highlighting classes
-         textarea.className = 'text-editor-textarea';
-         dialog.classList.remove('code-editor-mode');
-         
-         // Add syntax highlighting classes based on file type
-         switch(fileType) {
-           case 'py':
-             textarea.classList.add('syntax-python');
-             dialog.classList.add('code-editor-mode');
-             break;
-           case 'html':
-             textarea.classList.add('syntax-html');
-             dialog.classList.add('code-editor-mode');
-             break;
-           case 'js':
-             textarea.classList.add('syntax-javascript');
-             dialog.classList.add('code-editor-mode');
-             break;
-           case 'json':
-             textarea.classList.add('syntax-json');
-             dialog.classList.add('code-editor-mode');
-             break;
-           case 'ini':
-             textarea.classList.add('syntax-ini');
-             break;
-           case 'txt':
-             textarea.classList.add('syntax-text');
-             break;
-         }
-       }
-
-      // Add keyboard shortcuts for text editor
-      document.addEventListener('keydown', function(event) {
-        const textEditor = document.getElementById('textEditorDialog');
-        if (textEditor.style.display === 'flex') {
-          // Ctrl+S to save
-          if (event.ctrlKey && event.key === 's') {
-            event.preventDefault();
-            saveTextFile();
+                          // Set syntax highlighting based on file type
+        function setSyntaxHighlighting(fileType) {
+          let mode = 'text/plain';
+          
+          switch(fileType) {
+            case 'py':
+              mode = 'text/x-python';
+              break;
+            case 'html':
+              mode = 'text/html';
+              break;
+            case 'js':
+              mode = 'text/javascript';
+              break;
+            case 'json':
+              mode = 'application/json';
+              break;
+            case 'ini':
+              mode = 'text/x-ini';
+              break;
+            case 'config':
+              mode = 'text/x-ini'; // Similar to INI format
+              break;
+            case 'log':
+              mode = 'text/plain';
+              break;
+            case 'cs':
+              mode = 'text/x-csharp'; // C# syntax highlighting
+              break;
+            case 'sql':
+              mode = 'text/x-sql';
+              break;
+            case 'xml':
+              mode = 'text/xml';
+              break;
+            case 'bat':
+              mode = 'text/x-batch'; // Batch file syntax highlighting
+              break;
+            case 'css':
+              mode = 'text/css'; // CSS syntax highlighting
+              break;
+            case 'txt':
+              mode = 'text/plain';
+              break;
           }
-          // Ctrl+Q or Escape to close
-          if ((event.ctrlKey && event.key === 'q') || event.key === 'Escape') {
-            event.preventDefault();
-            closeTextEditor();
+          
+          if (codeEditor) {
+            codeEditor.setOption('mode', mode);
           }
         }
-      });
 
-             // Update line numbers
-       function updateLineNumbers() {
-         const textarea = document.getElementById('textEditorTextarea');
-         const lineNumbers = document.getElementById('textEditorLineNumbers');
-         const text = textarea.value;
-         const lines = text.split('\n');
-         
-         let lineNumbersHTML = '';
-         for (let i = 1; i <= lines.length; i++) {
-           lineNumbersHTML += `<div>${i}</div>`;
-         }
-         
-         lineNumbers.innerHTML = lineNumbersHTML;
-         
-         // Sync scroll between textarea and line numbers
-         lineNumbers.scrollTop = textarea.scrollTop;
-       }
+      
+
+                          // Update line numbers
+        function updateLineNumbers() {
+          // CodeMirror handles line numbers automatically
+        }
        
-       // Update text editor status bar
-       function updateTextEditorStatus() {
-         const textarea = document.getElementById('textEditorTextarea');
-         const status = document.getElementById('textEditorInfo');
-         
-         function updateStatus() {
-           const cursorPos = textarea.selectionStart;
-           const text = textarea.value;
-           const lines = text.substring(0, cursorPos).split('\n');
-           const line = lines.length;
-           const column = lines[lines.length - 1].length + 1;
-           
-           status.textContent = `Line ${line}, Column ${column}`;
-           
-           // Update line numbers when text changes
-           updateLineNumbers();
-         }
-         
-         // Remove existing event listeners to prevent duplicates
-         textarea.removeEventListener('input', updateStatus);
-         textarea.removeEventListener('click', updateStatus);
-         textarea.removeEventListener('keyup', updateStatus);
-         textarea.removeEventListener('scroll', updateLineNumbers);
-         
-         // Add new event listeners
-         textarea.addEventListener('input', updateStatus);
-         textarea.addEventListener('click', updateStatus);
-         textarea.addEventListener('keyup', updateStatus);
-         textarea.addEventListener('scroll', updateLineNumbers);
-         
-         // Initial update
-         updateStatus();
-       }
+               // Update text editor status bar
+        function updateTextEditorStatus() {
+          if (!codeEditor) return;
+          
+          const status = document.getElementById('textEditorInfo');
+          
+          function updateStatus() {
+            const cursor = codeEditor.getCursor();
+            const line = cursor.line + 1;
+            const column = cursor.ch + 1;
+            
+            status.textContent = `Line ${line}, Column ${column}`;
+          }
+          
+          // Initial update
+          updateStatus();
+        }
     </script>
   </body>
   <script src="{{ url_for('static', filename='java_imagezoom.js') }}"></script>
