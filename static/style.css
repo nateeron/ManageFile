@@ -174,7 +174,9 @@ select {
     /* border: 1px solid #5a5a5a;
     border-radius: 5px; */
 }
-
+.cm-invalidchar {
+    color: #585858 !important;
+}
 .menu_left{
     width: 200px;
     border-radius: 15px;
