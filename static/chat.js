@@ -436,9 +436,11 @@ function loadClientChatHistory() {
 
 // Load and display all chat history in a list format
 function showAllChatHistory() {
+  console.log('Loading all chat history...');
   fetch('/get_chat_files')
     .then(response => response.json())
     .then(data => {
+      console.log('Chat files response:', data);
       if (data.success) {
         const chatMessages = document.getElementById('chatMessages');
         chatMessages.innerHTML = '<div class="chat-history-list"></div>';
@@ -453,31 +455,43 @@ function showAllChatHistory() {
         `;
 
         // Process each chat file
+        console.log('Processing files:', data.files);
         const chatPromises = data.files.map(file => {
+          console.log('Processing file:', file);
           if (file === 'global_chat.json') {
             return fetch('/load_global_chat')
               .then(response => response.json())
-              .then(data => ({
-                fileName: 'Global Chat',
-                chatData: data.chatData,
-                isGlobal: true
-              }));
+              .then(data => {
+                console.log('Global chat data:', data);
+                return {
+                  fileName: 'Global Chat',
+                  chatData: data.chatData,
+                  isGlobal: true
+                };
+              });
           } else {
             const clientName = file.replace('.json', '');
             return fetch(`/load_chat_file/${file}`)
               .then(response => response.json())
-              .then(data => ({
-                fileName: clientName,
-                chatData: data.chatData,
-                isGlobal: false
-              }));
+              .then(data => {
+                console.log('Chat data for', file, ':', data);
+                return {
+                  fileName: clientName,
+                  chatData: data.chatData,
+                  isGlobal: false
+                };
+              });
           }
         });
 
         Promise.all(chatPromises)
           .then(chatResults => {
+            console.log('All chat results:', chatResults);
+            let hasValidChats = false;
             chatResults.forEach(result => {
+              console.log('Processing result:', result);
               if (result.chatData && result.chatData.messages) {
+                hasValidChats = true;
                 const chatContainer = document.createElement('div');
                 chatContainer.className = 'history-chat-container';
                 
@@ -507,7 +521,7 @@ function showAllChatHistory() {
                       Open Chat
                     </button>
                     ${result.isGlobal ? '' : `
-                      <button onclick="deleteChatHistory('${result.fileName}')" class="history-action-btn delete-btn">
+                      <button onclick="deleteChatHistory('${result.fileName}.json')" class="history-action-btn delete-btn">
                         Delete
                       </button>
                     `}
@@ -517,6 +531,19 @@ function showAllChatHistory() {
                 historyList.appendChild(chatContainer);
               }
             });
+            
+            if (!hasValidChats) {
+              historyList.innerHTML += `
+                <div class="history-chat-container">
+                  <div class="history-chat-header">
+                    <h4>📭 No Chat History</h4>
+                  </div>
+                  <div class="history-chat-messages">
+                    <p>No chat history found. Start a new chat to create history!</p>
+                  </div>
+                </div>
+              `;
+            }
           })
           .catch(error => {
             console.error('Error loading chat history:', error);
