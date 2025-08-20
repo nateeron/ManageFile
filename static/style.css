@@ -83,6 +83,7 @@ select {
 }
 .folder-link{
     z-index: 1;
+    max-height: 130px;
 }
 .item .row .txt {
     text-decoration: none;

@@ -127,7 +127,7 @@ document.getElementById("dropZone").addEventListener("drop", function (event) {
 
     let items = event.dataTransfer.items;
     let files = [];
-
+console.log("ssss")
     function readDirectory(entry, path = "") {
         if (entry.isFile) {
             entry.file((file) => {

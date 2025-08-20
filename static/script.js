@@ -2,6 +2,50 @@ let selectedItems = [];
 let selectedfile = [];
 let wail_select = false;
 
+let list_down_load = [];
+function CreateListDownLoad_Path(){
+    list_down_load = [];
+    const system_path = $("#system_path").val();
+    
+    // Call API to get folder contents (files only)
+    fetch("/get_folder_contents", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ folder_path: system_path }),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.success) {
+            console.log("File contents:", data);
+            
+            // Add only files to list_down_load
+            data.files.forEach(fileName => {
+                list_down_load.push({
+                    system_path, 
+                    folderName: fileName, 
+                    type: 'file'
+                });
+            });
+            
+            console.log("Updated list_down_load:", list_down_load);
+            console.log(`Total files found: ${data.total_files}`);
+            
+            // Optional: Display file count to user
+            if (data.total_files > 0) {
+                console.log(`Successfully loaded ${data.total_files} files for download`);
+            } else {
+                console.log("No files found in the selected directory");
+            }
+        } else {
+            console.error("Error getting file contents:", data.error);
+        }
+    })
+    .catch((error) => {
+        console.error("Error calling API:", error);
+    });
+}
 function handleClickSelect(e, systemPath, folderName, i = 0) {
     console.log("ssssssss")
     let $element = $(e); // Convert to jQuery object

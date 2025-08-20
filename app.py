@@ -571,6 +571,70 @@ def load_global_chat():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/get_folder_contents', methods=['POST'])
+def get_folder_contents():
+    """API to get list of all files in a specified path (including subdirectories) - FILES ONLY"""
+    try:
+        data = request.get_json()
+        folder_path = data.get('folder_path', '')
+        
+        if not folder_path:
+            return jsonify({'success': False, 'error': 'Missing folder_path parameter'}), 400
+        
+        # Security check: ensure the path exists and is accessible
+        if not os.path.exists(folder_path):
+            return jsonify({'success': False, 'error': 'Path does not exist'}), 404
+        
+        if not os.path.isdir(folder_path):
+            return jsonify({'success': False, 'error': 'Path is not a directory'}), 400
+        
+        # List to store only files
+        all_files = []
+        
+        print(f"Starting recursive file scan for: {folder_path}")
+        
+        # Walk through all subdirectories recursively - this will loop through ALL folders until no more
+        for root, dirs, files in os.walk(folder_path):
+            try:
+                # Get relative path from the base folder_path
+                relative_root = os.path.relpath(root, folder_path)
+                print(f"Scanning folder: {relative_root} (contains {len(files)} files)")
+                
+                # Add only files in current folder
+                for file_name in files:
+                    try:
+                        # Create relative path for the file
+                        if relative_root == '.':
+                            file_path = file_name
+                        else:
+                            file_path = os.path.join(relative_root, file_name)
+                        all_files.append(file_path)
+                        print(f"  Found file: {file_path}")
+                    except (PermissionError, OSError) as e:
+                        print(f"  Skipping inaccessible file: {file_name} - {e}")
+                        continue
+                        
+            except (PermissionError, OSError) as e:
+                # Skip directories that can't be accessed
+                print(f"Skipping inaccessible directory: {root} - {e}")
+                continue
+        
+        print(f"Recursive scan complete. Found {len(all_files)} files")
+        
+        # Sort files alphabetically
+        all_files.sort()
+        
+        return jsonify({
+            'success': True,
+            'folder_path': folder_path,
+            'files': all_files,
+            'total_files': len(all_files)
+        })
+        
+    except Exception as e:
+        print(f"Error in get_folder_contents: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @app.route('/delete_chat_file/<filename>', methods=['DELETE'])
 def delete_chat_file(filename):
