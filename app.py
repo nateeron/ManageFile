@@ -15,7 +15,7 @@ app = Flask(__name__, template_folder="templates")
 socketio = SocketIO(app, cors_allowed_origins="*") 
 def check_System():
     system_info = platform.system()
-
+    print(system_info)
     if system_info == "Windows":
         # List all available drives (C:, D:, E:, etc.)
         drives = [f"{d}:/" for d in string.ascii_uppercase if os.path.exists(f"{d}:/")]
