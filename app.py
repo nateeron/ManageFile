@@ -21,15 +21,17 @@ def check_System():
         drives = [f"{d}:/" for d in string.ascii_uppercase if os.path.exists(f"{d}:/")]
         return drives  # Return list of drives
     elif system_info == "Linux":
-        if "Linux" in platform.uname():  # Checking for Android system
+        if "Linux" in platform.system() and "Ubuntu" not in platform.version():  # Checking for Android system
+            print("Android /storage/emulated/0")
             return ["/storage/emulated/0"]  # Android Internal Storage
         else:
             # For Ubuntu/Linux, list all mounted file systems
             mounts = []
             with os.popen('mount -v') as f:
-                for line in f.readlines():
+                for line in f:
                     if "on" in line:  # Identify mount points
                         parts = line.split()
+                        print(parts)
                         mounts.append(parts[2])  # The mount point is the third element
             return mounts
     else:
@@ -37,20 +39,28 @@ def check_System():
 
 @app.route('/')
 def index():
-      drives = check_System()
-      
-      # Get selected path (default to first drive if available)
-      selected_path = request.args.get('path', drives[0] if drives else None)
+    drives = check_System()
+    
+    # Get selected path (default to first drive or user home)
+    selected_path = request.args.get('path', drives[0] if drives else os.path.expanduser("~"))
 
-      folders, files = [], []
-      if selected_path and os.path.exists(selected_path):
+    folders, files, file_types = [], [], {}
+    if selected_path and os.path.exists(selected_path) and os.path.isdir(selected_path):
+        try:
             folders = [f for f in os.listdir(selected_path) if os.path.isdir(os.path.join(selected_path, f))]
             files = [f for f in os.listdir(selected_path) if os.path.isfile(os.path.join(selected_path, f))]
+            folders.sort()
+            files.sort()
             file_types = {f: f.split('.')[-1] if '.' in f else 'Unknown' for f in files}
             print("File types:", file_types)
-            
-      return render_template("index.html", system_path=selected_path, drives=drives, folders=folders, files=files,file_types=file_types)
-
+        except PermissionError:
+            folders, files, file_types = [], [], {}
+    
+    return render_template("index.html", system_path=selected_path, drives=drives,
+                           folders=folders, files=files, file_types=file_types)
+    
+    
+    
 @app.route('/download_folders', methods=['POST'])
 def download_folders():
     data = request.get_json()
