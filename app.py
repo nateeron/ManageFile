@@ -573,7 +573,7 @@ def load_global_chat():
 
 @app.route('/get_folder_contents', methods=['POST'])
 def get_folder_contents():
-    """API to get list of all files in a specified path (including subdirectories) - FILES ONLY"""
+    """API to get list of all files and folders in a specified path (including subdirectories)"""
     try:
         data = request.get_json()
         folder_path = data.get('folder_path', '')
@@ -588,19 +588,34 @@ def get_folder_contents():
         if not os.path.isdir(folder_path):
             return jsonify({'success': False, 'error': 'Path is not a directory'}), 400
         
-        # List to store only files
+        # Lists to store all paths
+        all_folders = []
         all_files = []
         
-        print(f"Starting recursive file scan for: {folder_path}")
+        print(f"Starting recursive folder scan for: {folder_path}")
         
         # Walk through all subdirectories recursively - this will loop through ALL folders until no more
         for root, dirs, files in os.walk(folder_path):
             try:
                 # Get relative path from the base folder_path
                 relative_root = os.path.relpath(root, folder_path)
-                print(f"Scanning folder: {relative_root} (contains {len(files)} files)")
+                print(f"Scanning folder: {relative_root} (contains {len(dirs)} subfolders, {len(files)} files)")
                 
-                # Add only files in current folder
+                # Add subdirectories (these will be scanned in the next iteration)
+                for dir_name in dirs:
+                    try:
+                        # Create relative path for the directory
+                        if relative_root == '.':
+                            dir_path = dir_name
+                        else:
+                            dir_path = os.path.join(relative_root, dir_name)
+                        all_folders.append(dir_path)
+                        print(f"  Found folder: {dir_path}")
+                    except (PermissionError, OSError) as e:
+                        print(f"  Skipping inaccessible folder: {dir_name} - {e}")
+                        continue
+                
+                # Add files in current folder
                 for file_name in files:
                     try:
                         # Create relative path for the file
@@ -619,15 +634,18 @@ def get_folder_contents():
                 print(f"Skipping inaccessible directory: {root} - {e}")
                 continue
         
-        print(f"Recursive scan complete. Found {len(all_files)} files")
+        print(f"Recursive scan complete. Found {len(all_folders)} folders and {len(all_files)} files")
         
-        # Sort files alphabetically
+        # Sort folders and files alphabetically
+        all_folders.sort()
         all_files.sort()
         
         return jsonify({
             'success': True,
             'folder_path': folder_path,
+            'folders': all_folders,
             'files': all_files,
+            'total_folders': len(all_folders),
             'total_files': len(all_files)
         })
         

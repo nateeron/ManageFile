@@ -7,7 +7,7 @@ function CreateListDownLoad_Path(){
     list_down_load = [];
     const system_path = $("#system_path").val();
     
-    // Call API to get folder contents (files only)
+    // Call API to get folder contents
     fetch("/get_folder_contents", {
         method: "POST",
         headers: {
@@ -18,28 +18,22 @@ function CreateListDownLoad_Path(){
     .then((response) => response.json())
     .then((data) => {
         if (data.success) {
-            console.log("File contents:", data);
+            console.log("Folder contents:", data);
             
-            // Add only files to list_down_load
+            // Add folders to list_down_load
+            data.folders.forEach(folderName => {
+                list_down_load.push({system_path, folderName, type: 'folder'});
+            });
+            
+            // Add files to list_down_load
             data.files.forEach(fileName => {
-                list_down_load.push({
-                    system_path, 
-                    folderName: fileName, 
-                    type: 'file'
-                });
+                list_down_load.push({system_path, folderName: fileName, type: 'file'});
             });
             
             console.log("Updated list_down_load:", list_down_load);
-            console.log(`Total files found: ${data.total_files}`);
-            
-            // Optional: Display file count to user
-            if (data.total_files > 0) {
-                console.log(`Successfully loaded ${data.total_files} files for download`);
-            } else {
-                console.log("No files found in the selected directory");
-            }
+            console.log(`Total items: ${data.total_folders} folders, ${data.total_files} files`);
         } else {
-            console.error("Error getting file contents:", data.error);
+            console.error("Error getting folder contents:", data.error);
         }
     })
     .catch((error) => {
