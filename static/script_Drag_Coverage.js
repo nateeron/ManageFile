@@ -19,7 +19,7 @@ $(document).ready(function () {
         
         console.log("Drag started");
         isDragging = true;
-        $(".selectable-item").removeClass("selected"); // Reset selections
+        // Don't reset selections - keep existing selections when starting a new drag
 
         let touch = event.type === "touchstart" ? event.touches[0] : event;
         const dragAreaOffset = $dragArea.offset();
@@ -84,11 +84,12 @@ $(document).ready(function () {
                     itemTop < top + height
                 );
                 
+                // Only select items that are in the selection box
+                // Don't unselect items that are already selected
                 if (overlaps) {
                     $item.addClass("selected");
-                } else {
-                    $item.removeClass("selected");
                 }
+                // Remove the else block - don't unselect items outside the box
             });
         }
 
@@ -193,23 +194,27 @@ $(document).ready(function () {
                 console.log("handleClickSelect function exists:", typeof handleClickSelect === 'function');
                 
                 if (folderName && systemPath) {
-                    // Use handleClickSelect to properly add to selection (same as clicking)
-                    const itemType = isFile ? 1 : 0;
-                    console.log("Calling handleClickSelect with:", {element: $link[0], systemPath, folderName, itemType});
+                    // Check if already selected to avoid unselecting
+                    const itemIndex = (typeof selectedItems !== 'undefined') ? selectedItems.indexOf(folderName) : -1;
+                    const itemfileIndex = (typeof selectedfile !== 'undefined') ? selectedfile.indexOf(folderName) : -1;
+                    const $item = $link.find('.item');
+                    const isAlreadySelected = (itemIndex !== -1 || itemfileIndex !== -1) || $item.hasClass('is_select');
                     
-                    if (typeof handleClickSelect === 'function') {
-                        try {
-                            handleClickSelect($link[0], systemPath, folderName, itemType);
-                            console.log("handleClickSelect called successfully");
-                        } catch (error) {
-                            console.error("Error calling handleClickSelect:", error);
-                        }
-                    } else {
-                        // Fallback: manually add to selection
-                        const itemIndex = (typeof selectedItems !== 'undefined') ? selectedItems.indexOf(folderName) : -1;
-                        const itemfileIndex = (typeof selectedfile !== 'undefined') ? selectedfile.indexOf(folderName) : -1;
+                    // Only select if not already selected
+                    if (!isAlreadySelected) {
+                        // Use handleClickSelect to properly add to selection (same as clicking)
+                        const itemType = isFile ? 1 : 0;
+                        console.log("Calling handleClickSelect with:", {element: $link[0], systemPath, folderName, itemType});
                         
-                        if (itemIndex === -1 && itemfileIndex === -1) {
+                        if (typeof handleClickSelect === 'function') {
+                            try {
+                                handleClickSelect($link[0], systemPath, folderName, itemType);
+                                console.log("handleClickSelect called successfully");
+                            } catch (error) {
+                                console.error("Error calling handleClickSelect:", error);
+                            }
+                        } else {
+                            // Fallback: manually add to selection
                             if (isFile) {
                                 if (typeof selectedfile !== 'undefined') {
                                     selectedfile.push(folderName);
@@ -221,12 +226,13 @@ $(document).ready(function () {
                             }
                             
                             // Add visual selection
-                            const $item = $link.find('.item');
                             if (!$item.find('.select-icon').length) {
                                 $item.append('<div class="select-icon"></div>');
                                 $item.addClass('is_select');
                             }
                         }
+                    } else {
+                        console.log("Item already selected, skipping:", folderName);
                     }
                 }
             });
