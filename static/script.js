@@ -55,7 +55,7 @@ function handleClickSelect(e, systemPath, folderName, i = 0) {
                 selectedItems.push(folderName); // Add to selection
             }
             if (!$element.find(".select-icon").length) {
-                $element.find(".item").append('<i class="fa-solid fa-check select-icon"></i>');
+                $element.find(".item").append('<div class="select-icon"></div>');
                 $element.find(".item").addClass("is_select");
             }
         } else {
@@ -71,6 +71,11 @@ function handleClickSelect(e, systemPath, folderName, i = 0) {
 
         console.log("Selected folders:", selectedItems);
         console.log("Selected file:", selectedfile);
+        
+        // Update Select All button text
+        if (typeof updateSelectAllButtonText === 'function') {
+            updateSelectAllButtonText();
+        }
         
         // Show/hide OpenFile button based on selection
         // Show Open button when exactly one file OR one folder is selected
@@ -172,11 +177,11 @@ $(document).ready(function () {
                 $("#OpenFile").addClass("d-none");
             }
 
-            // Add a checkmark icon when long pressed
+            // Add a selection indicator when long pressed
             if (!$this.find(".select-icon").length) {
                 $(".item").addClass("wait_select");
                 $this.find(".item").addClass("is_select");
-                $this.find(".item").append('<i class="fa-solid fa-check select-icon"></i>');
+                $this.find(".item").append('<div class="select-icon"></div>');
                 wail_select = true;
             }
         // }, holdTime);

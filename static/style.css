@@ -235,8 +235,26 @@ select {
     background: #181818a4;
 }
 .is_select{
-  
     background-color: rgb(43 43 43);
+    position: relative;
+}
+
+/* Selection indicator - blue dot at top-left corner */
+.select-icon {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 12px;
+    height: 12px;
+    background-color: #40a245;
+    border-radius: 50%;
+    border: 1px solid #fff;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.item {
+    position: relative;
 }
 
 .custom-btn {

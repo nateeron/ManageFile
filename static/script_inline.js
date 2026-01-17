@@ -170,7 +170,7 @@ $('#NewFile').click(function () {
 })
 
 $('#SelectAll').click(function () {
-  selectAllItems()
+  toggleSelectAll()
 })
 
 $('#closeNewFile').click(function () {
@@ -1717,6 +1717,11 @@ document.addEventListener('DOMContentLoaded', function() {
     createBreadcrumbNavigator(systemPath.value);
   }
   
+  // Initialize Select All button text
+  if (typeof updateSelectAllButtonText === 'function') {
+    updateSelectAllButtonText();
+  }
+  
   // Add click handlers for view mode buttons
   const menuItems = document.querySelectorAll('.item_menu[data-view]');
   menuItems.forEach(item => {
@@ -1890,8 +1895,8 @@ function restoreSelectionAfterRename() {
               const item = link.querySelector('.item');
               if (item) {
                 if (!item.querySelector('.select-icon')) {
-                  const icon = document.createElement('i');
-                  icon.className = 'fa-solid fa-check select-icon';
+                  const icon = document.createElement('div');
+                  icon.className = 'select-icon';
                   item.appendChild(icon);
                   item.classList.add('is_select');
                 }
@@ -2150,68 +2155,116 @@ function createTableView() {
   dropZone.appendChild(tableContainer);
 }
 
-// Select All functionality
-function selectAllItems() {
-  if (!wail_select) {
-    alert("Please enable selection mode first");
-    return;
-  }
-  
+// Select All / Unselect All functionality
+function toggleSelectAll() {
   const dropZone = document.getElementById('dropZone');
   if (!dropZone) return;
   
   const systemPath = document.getElementById('system_path').value;
   
+  // Enable selection mode if not already enabled
+  if (!wail_select) {
+    wail_select = true;
+  }
+  
   // Get all folder links (both folders and files are wrapped in .folder-link)
   const folderLinks = dropZone.querySelectorAll('.folder-link');
   
-  // Select all items using handleClickSelect
+  // Check if all items are already selected
+  let allSelected = true;
   folderLinks.forEach(link => {
-    const txt = link.querySelector('.txt');
-    if (!txt) return;
-    
-    const itemName = txt.textContent.trim();
-    if (!itemName) return;
-    
-    // Check if already selected
     const itemElement = link.querySelector('.item');
-    if (itemElement && itemElement.classList.contains('is_select')) {
-      return; // Already selected, skip
-    }
-    
-    // Determine if it's a file or folder by checking onclick attribute or class
-    let isFile = false;
-    const onclickAttr = link.getAttribute('onclick');
-    if (onclickAttr && onclickAttr.includes(',1)')) {
-      isFile = true;
-    } else if (link.querySelector('.item_file') || link.classList.contains('item_file')) {
-      isFile = true;
-    }
-    
-    // Call handleClickSelect to properly add to selection
-    if (typeof handleClickSelect === 'function') {
-      handleClickSelect(link, systemPath, itemName, isFile ? 1 : 0);
+    if (itemElement && !itemElement.classList.contains('is_select')) {
+      allSelected = false;
     }
   });
   
-  // Update table view selection if active
-  if (dropZone.classList.contains('view-list-multi')) {
-    const rows = dropZone.querySelectorAll('table tbody tr');
-    rows.forEach(row => {
-      const nameCell = row.querySelector('.item-name');
-      if (nameCell) {
-        const itemName = nameCell.textContent.trim();
-        if (selectedItems.includes(itemName) || selectedfile.includes(itemName)) {
-          row.classList.add('selected');
+  // If all are selected, unselect all; otherwise, select all
+  if (allSelected && folderLinks.length > 0) {
+    // Unselect all
+    selectedItems = [];
+    selectedfile = [];
+    
+    // Remove all selection icons
+    dropZone.querySelectorAll('.select-icon').forEach(icon => icon.remove());
+    dropZone.querySelectorAll('.is_select').forEach(item => item.classList.remove('is_select'));
+    
+    // Update table view selection if active
+    if (dropZone.classList.contains('view-list-multi')) {
+      const rows = dropZone.querySelectorAll('table tbody tr');
+      rows.forEach(row => row.classList.remove('selected'));
+    }
+    
+    // Update button text
+    $('#SelectAll').text('✓ Select All');
+    
+    console.log("Unselected all items");
+  } else {
+    // Select all items - manually add to selection arrays and update UI
+    folderLinks.forEach(link => {
+      const txt = link.querySelector('.txt');
+      if (!txt) return;
+      
+      const itemName = txt.textContent.trim();
+      if (!itemName) return;
+      
+      // Check if already selected
+      const itemElement = link.querySelector('.item');
+      if (itemElement && itemElement.classList.contains('is_select')) {
+        return; // Already selected, skip
+      }
+      
+      // Determine if it's a file or folder by checking onclick attribute or class
+      let isFile = false;
+      const onclickAttr = link.getAttribute('onclick');
+      if (onclickAttr && onclickAttr.includes(',1)')) {
+        isFile = true;
+      } else if (link.querySelector('.item_file') || link.classList.contains('item_file')) {
+        isFile = true;
+      }
+      
+      // Add to appropriate selection array
+      if (isFile) {
+        if (selectedfile.indexOf(itemName) === -1) {
+          selectedfile.push(itemName);
+        }
+      } else {
+        if (selectedItems.indexOf(itemName) === -1) {
+          selectedItems.push(itemName);
         }
       }
+      
+      // Add visual selection indicator
+      if (itemElement && !itemElement.querySelector('.select-icon')) {
+        const selectDot = document.createElement('div');
+        selectDot.className = 'select-icon';
+        itemElement.appendChild(selectDot);
+        itemElement.classList.add('is_select');
+      }
     });
+    
+    // Update table view selection if active
+    if (dropZone.classList.contains('view-list-multi')) {
+      const rows = dropZone.querySelectorAll('table tbody tr');
+      rows.forEach(row => {
+        const nameCell = row.querySelector('.item-name');
+        if (nameCell) {
+          const itemName = nameCell.textContent.trim();
+          if (selectedItems.includes(itemName) || selectedfile.includes(itemName)) {
+            row.classList.add('selected');
+          }
+        }
+      });
+    }
+    
+    // Update button text
+    $('#SelectAll').text('✗ Unselect All');
+    
+    console.log("Selected all items - Folders:", selectedItems.length, "Files:", selectedfile.length);
   }
   
   // Show action buttons
   updateActionButtonsVisibility();
-  
-  console.log("Selected all items - Folders:", selectedItems.length, "Files:", selectedfile.length);
 }
 
 // Update action buttons visibility based on selection
@@ -2231,6 +2284,37 @@ function updateActionButtonsVisibility() {
     $("#OpenFile").removeClass("d-none");
   } else {
     $("#OpenFile").addClass("d-none");
+  }
+  
+  // Update Select All button text
+  updateSelectAllButtonText();
+}
+
+// Update Select All button text based on current selection state
+function updateSelectAllButtonText() {
+  const dropZone = document.getElementById('dropZone');
+  if (!dropZone) return;
+  
+  const folderLinks = dropZone.querySelectorAll('.folder-link');
+  if (folderLinks.length === 0) {
+    $('#SelectAll').text('✓ Select All');
+    return;
+  }
+  
+  // Check if all items are selected
+  let allSelected = true;
+  folderLinks.forEach(link => {
+    const itemElement = link.querySelector('.item');
+    if (itemElement && !itemElement.classList.contains('is_select')) {
+      allSelected = false;
+    }
+  });
+  
+  // Update button text
+  if (allSelected && folderLinks.length > 0) {
+    $('#SelectAll').text('✗ Unselect All');
+  } else {
+    $('#SelectAll').text('✓ Select All');
   }
 }
 
@@ -2262,6 +2346,11 @@ function handleTableItemClick(element, systemPath, itemName, isFile) {
       });
     }
   });
+  
+  // Update Select All button text
+  if (typeof updateSelectAllButtonText === 'function') {
+    updateSelectAllButtonText();
+  }
 }
 
 // Show download confirm dialog

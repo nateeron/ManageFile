@@ -223,7 +223,7 @@ $(document).ready(function () {
                             // Add visual selection
                             const $item = $link.find('.item');
                             if (!$item.find('.select-icon').length) {
-                                $item.append('<i class="fa-solid fa-check select-icon"></i>');
+                                $item.append('<div class="select-icon"></div>');
                                 $item.addClass('is_select');
                             }
                         }
