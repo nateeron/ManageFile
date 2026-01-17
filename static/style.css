@@ -1,6 +1,7 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+    font-size: 13px;
+    margin: 10px;
     background-color: #333;
     color: #ddd;
 }
@@ -28,24 +29,26 @@ ul {
     padding: 0;
 }
 li {
-    padding: 5px;
+    padding: 3px;
     border-bottom: 1px solid #ddd;
+    font-size: 13px;
 }
 select {
-    margin-bottom: 10px;
-    padding: 5px;
+    margin-bottom: 6px;
+    padding: 4px;
+    font-size: 13px;
 }
 .container{
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 .box-item-drive {
     display: grid;
     width: 100%;
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 20px;
+    gap: 12px;
     min-height: 300px;
-    padding: 25px;
+    padding: 12px;
     background: #454545;
     border-radius: 3px;
     touch-action: none;
@@ -63,7 +66,7 @@ select {
     flex-direction: column;
     align-items: center;
     /* width: 60px; */
-    height: 130px;
+    height: 110px;
     /* padding: 9px;
     margin: 9px; */
     border-radius: 3px;
@@ -78,7 +81,7 @@ select {
 }
 
 .item .row i {
-    font-size: 80px;
+    font-size: 60px;
     color: #1e89cb;
 }
 .folder-link{
@@ -87,13 +90,13 @@ select {
 }
 .item .row .txt {
     text-decoration: none;
-    margin-top: 5px;
+    margin-top: 3px;
     display: block;
     text-align: center;
     word-wrap: break-word;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     width: 80px;
-    max-height: 32px;
+    max-height: 28px;
     overflow: hidden;
 }
 .item .row .txt:hover {
@@ -182,17 +185,18 @@ select {
     width: 200px;
     border-radius: 15px;
     background: #454545;
-    padding: 8px;
+    padding: 6px;
 }
 .menu_left .i-menu{
     background: #696868;
     border-radius: 15px;
-    margin: 8px;
-    height: 32px;
+    margin: 5px;
+    height: 28px;
     display: flex
 ;
     align-items: center;
-    padding: 0 15px;
+    padding: 0 12px;
+    font-size: 13px;
 }
 .menu_left .i-menu.active{
     background: #303030  !important;
@@ -209,8 +213,8 @@ select {
 .custom-btn {
     background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
-    font-size: 12px;
-    padding: 6px 18px;
+    font-size: 11px;
+    padding: 4px 12px;
     border: none;
     border-radius: 3px;
     cursor: pointer;
@@ -237,8 +241,9 @@ select {
     display: flex;
     justify-content: end;
     width: 100%;
-    gap: 11px;
-    padding: 0px 10px;
+    gap: 8px;
+    padding: 0px 6px;
+    flex-wrap: wrap;
 }
 
 .progress {
@@ -286,7 +291,7 @@ select {
 /* Popup content box */
 .popup-content {
     background-color: #343434;
-    padding: 20px;
+    padding: 12px;
     border-radius: 10px;
     width: 300px;
     text-align: center;
@@ -304,6 +309,7 @@ select {
 /* Styling the input field and button */
 #folderName {
     width: 80%;
-    padding: 10px;
-    margin: 10px 0;
+    padding: 6px;
+    margin: 6px 0;
+    font-size: 13px;
 }
