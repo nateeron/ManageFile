@@ -42,6 +42,18 @@ select {
     display: flex;
     gap: 8px;
 }
+
+@media (min-width: 576px) {
+    .container, .container-sm {
+        max-width: 98% !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .container, .container-sm {
+        max-width: 98% !important;
+    }
+}
 .box-item-drive {
     display: grid;
     width: 100%;
@@ -53,6 +65,23 @@ select {
     border-radius: 3px;
     touch-action: none;
     margin-right: 80px;
+}
+
+/* Override for List Multi-Column View */
+.view-list-multi.box-item-drive,
+.box-item-drive.view-list-multi {
+    display: block !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    grid-auto-flow: unset !important;
+    gap: 0 !important;
+}
+
+/* Override for List Vertical View */
+.view-list-vertical.box-item-drive,
+.box-item-drive.view-list-vertical {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(171px, 1fr)) !important;
 }
 .container-upload {
     max-width: 500px;

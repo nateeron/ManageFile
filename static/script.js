@@ -73,7 +73,9 @@ function handleClickSelect(e, systemPath, folderName, i = 0) {
         console.log("Selected file:", selectedfile);
         
         // Show/hide OpenFile button based on selection
-        if (selectedfile.length === 1 && selectedItems.length === 0) {
+        // Show Open button when exactly one file OR one folder is selected
+        if ((selectedfile.length === 1 && selectedItems.length === 0) || 
+            (selectedItems.length === 1 && selectedfile.length === 0)) {
             $("#OpenFile").removeClass("d-none");
         } else {
             $("#OpenFile").addClass("d-none");
@@ -162,8 +164,9 @@ $(document).ready(function () {
             $("#renameBtn").removeClass("d-none");
             $("#deleteBtn").removeClass("d-none");
             
-            // Show OpenFile button only when single file is selected (not folder)
-            if (selectedfile.length === 1 && selectedItems.length === 0) {
+            // Show Open button when exactly one file OR one folder is selected
+            if ((selectedfile.length === 1 && selectedItems.length === 0) || 
+                (selectedItems.length === 1 && selectedfile.length === 0)) {
                 $("#OpenFile").removeClass("d-none");
             } else {
                 $("#OpenFile").addClass("d-none");

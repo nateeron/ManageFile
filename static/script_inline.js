@@ -169,6 +169,10 @@ $('#NewFile').click(function () {
   $('#newFileName').focus()
 })
 
+$('#SelectAll').click(function () {
+  selectAllItems()
+})
+
 $('#closeNewFile').click(function () {
   $('#newFilePopup').css('display', 'none')
   $('#newFileName').val('')
@@ -236,24 +240,39 @@ $('#createFileBtn').click(function () {
 })
 
 $('#OpenFile').click(function () {
-  // Get selected files
-  if (selectedfile.length === 0) {
-    alert('Please select a file to open!')
+  // Get selected files or folders
+  const hasFile = selectedfile.length > 0
+  const hasFolder = selectedItems.length > 0
+  
+  // Check if exactly one item is selected (either file or folder)
+  if ((hasFile ? 1 : 0) + (hasFolder ? 1 : 0) !== 1) {
+    if (selectedfile.length === 0 && selectedItems.length === 0) {
+      alert('Please select a file or folder to open!')
+    } else if (selectedfile.length > 1 || selectedItems.length > 1 || (selectedfile.length > 0 && selectedItems.length > 0)) {
+      alert('Please select only one file or folder to open!')
+    }
     return
   }
   
-  if (selectedfile.length > 1) {
-    alert('Please select only one file to open!')
-    return
-  }
-  
-  if (selectedItems.length > 0) {
-    alert('Please select only a file (not a folder)!')
-    return
-  }
-  
-  const fileName = selectedfile[0]
   const systemPath = $('#system_path').val()
+  
+  // If folder is selected, navigate to it
+  if (hasFolder && selectedItems.length === 1) {
+    const folderName = selectedItems[0]
+    // Use handleDoubleClick to navigate to folder
+    if (typeof handleDoubleClick === 'function') {
+      handleDoubleClick(systemPath, folderName)
+    } else {
+      // Fallback: navigate manually
+      const separator = systemPath.includes('\\') ? '\\' : '/'
+      const fullPath = systemPath + (systemPath.endsWith('/') || systemPath.endsWith('\\') ? '' : separator) + folderName
+      window.location.href = '/?path=' + encodeURIComponent(fullPath)
+    }
+    return
+  }
+  
+  // If file is selected, open it based on type
+  const fileName = selectedfile[0]
   
   // Get file extension
   const fileExtension = fileName.split('.').pop().toLowerCase()
@@ -269,10 +288,263 @@ $('#OpenFile').click(function () {
       document.getElementById('dialog-image').src = imageUrl
       document.getElementById('dialog-contentz').style.display = 'flex'
     }
+  } else if (fileExtension === 'mp4' || fileExtension === 'webm' || fileExtension === 'ogg' || fileExtension === 'avi' || fileExtension === 'mov' || fileExtension === 'mkv' || fileExtension === 'flv' || fileExtension === 'wmv') {
+    // Open video in video player
+    openVideoPlayer(systemPath, fileName)
   } else {
     // For text files, use handleTextFileDoubleClick
     handleTextFileDoubleClick(systemPath, fileName, fileExtension)
   }
+})
+
+// Video player state
+let videoList = []
+let currentVideoIndex = 0
+let currentSystemPath = ''
+
+// Function to open video player
+function openVideoPlayer(systemPath, fileName) {
+  currentSystemPath = systemPath
+  
+  // Get all video files in current directory
+  const allItems = document.querySelectorAll('.item_video, .item')
+  videoList = []
+  
+  allItems.forEach(item => {
+    const link = item.closest('.folder-link')
+    if (link) {
+      const txt = item.querySelector('.txt')
+      if (txt) {
+        const itemName = txt.textContent.trim()
+        const fileExt = itemName.split('.').pop().toLowerCase()
+        const videoExtensions = ['mp4', 'webm', 'ogg', 'avi', 'mov', 'mkv', 'flv', 'wmv']
+        if (videoExtensions.includes(fileExt)) {
+          videoList.push(itemName)
+        }
+      }
+    }
+  })
+  
+  // Find current video index
+  currentVideoIndex = videoList.indexOf(fileName)
+  if (currentVideoIndex === -1) {
+    currentVideoIndex = 0
+  }
+  
+  // Load and play video
+  loadVideo(currentVideoIndex)
+  
+  // Show video player dialog
+  const dialog = document.getElementById('videoPlayerDialog')
+  dialog.style.display = 'flex'
+  
+  // Update video info
+  updateVideoInfo()
+}
+
+// Function to load video
+function loadVideo(index) {
+  if (index < 0 || index >= videoList.length) return
+  
+  currentVideoIndex = index
+  const videoPlayer = document.getElementById('videoPlayer')
+  const videoUrl = `./download/${encodeURIComponent(videoList[index])}?path=${encodeURIComponent(currentSystemPath)}`
+  
+  videoPlayer.src = videoUrl
+  videoPlayer.load()
+  
+  // Update title
+  const title = document.getElementById('videoPlayerTitle')
+  title.textContent = videoList[index]
+  
+  // Update video info
+  updateVideoInfo()
+  
+  // Update button states
+  updateVideoButtons()
+}
+
+// Function to update video info
+function updateVideoInfo() {
+  document.getElementById('currentVideoIndex').textContent = currentVideoIndex + 1
+  document.getElementById('totalVideos').textContent = videoList.length
+}
+
+// Function to update video navigation buttons
+function updateVideoButtons() {
+  const prevBtn = document.getElementById('prevVideoBtn')
+  const nextBtn = document.getElementById('nextVideoBtn')
+  
+  prevBtn.disabled = currentVideoIndex === 0
+  nextBtn.disabled = currentVideoIndex === videoList.length - 1
+  
+  if (prevBtn.disabled) {
+    prevBtn.style.opacity = '0.5'
+    prevBtn.style.cursor = 'not-allowed'
+  } else {
+    prevBtn.style.opacity = '1'
+    prevBtn.style.cursor = 'pointer'
+  }
+  
+  if (nextBtn.disabled) {
+    nextBtn.style.opacity = '0.5'
+    nextBtn.style.cursor = 'not-allowed'
+  } else {
+    nextBtn.style.opacity = '1'
+    nextBtn.style.cursor = 'pointer'
+  }
+}
+
+// Close video player
+function closeVideoPlayer() {
+  const dialog = document.getElementById('videoPlayerDialog')
+  const videoPlayer = document.getElementById('videoPlayer')
+  
+  videoPlayer.pause()
+  videoPlayer.src = ''
+  dialog.style.display = 'none'
+  dialog.classList.remove('fullscreen')
+  
+  // Exit fullscreen if active
+  if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen()
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen()
+    }
+  }
+}
+
+// Toggle fullscreen
+function toggleFullscreen() {
+  const dialog = document.getElementById('videoPlayerDialog')
+  const videoPlayer = document.getElementById('videoPlayer')
+  const fullscreenBtn = document.getElementById('fullscreenBtn')
+  
+  if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+    // Enter fullscreen
+    if (dialog.requestFullscreen) {
+      dialog.requestFullscreen()
+    } else if (dialog.webkitRequestFullscreen) {
+      dialog.webkitRequestFullscreen()
+    } else if (dialog.mozRequestFullScreen) {
+      dialog.mozRequestFullScreen()
+    } else if (dialog.msRequestFullscreen) {
+      dialog.msRequestFullscreen()
+    }
+    
+    dialog.classList.add('fullscreen')
+    fullscreenBtn.innerHTML = '<i class="fa-solid fa-compress"></i>'
+  } else {
+    // Exit fullscreen
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen()
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen()
+    }
+    
+    dialog.classList.remove('fullscreen')
+    fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'
+  }
+}
+
+// Video player event handlers
+$(document).ready(function() {
+  // Close button
+  $('#closeVideoPlayer').click(function() {
+    closeVideoPlayer()
+  })
+  
+  // Previous video button
+  $('#prevVideoBtn').click(function() {
+    if (currentVideoIndex > 0) {
+      loadVideo(currentVideoIndex - 1)
+    }
+  })
+  
+  // Next video button
+  $('#nextVideoBtn').click(function() {
+    if (currentVideoIndex < videoList.length - 1) {
+      loadVideo(currentVideoIndex + 1)
+    }
+  })
+  
+  // Fullscreen button
+  $('#fullscreenBtn').click(function() {
+    toggleFullscreen()
+  })
+  
+  // Keyboard shortcuts
+  $(document).keydown(function(e) {
+    const dialog = document.getElementById('videoPlayerDialog')
+    if (dialog.style.display === 'flex') {
+      // Escape to close
+      if (e.key === 'Escape') {
+        closeVideoPlayer()
+      }
+      // Arrow left for previous
+      else if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
+        if (currentVideoIndex > 0) {
+          loadVideo(currentVideoIndex - 1)
+        }
+      }
+      // Arrow right for next
+      else if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
+        if (currentVideoIndex < videoList.length - 1) {
+          loadVideo(currentVideoIndex + 1)
+        }
+      }
+      // F for fullscreen
+      else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen()
+      }
+    }
+  })
+  
+  // Handle fullscreen change events
+  document.addEventListener('fullscreenchange', function() {
+    const dialog = document.getElementById('videoPlayerDialog')
+    const fullscreenBtn = document.getElementById('fullscreenBtn')
+    if (!document.fullscreenElement) {
+      dialog.classList.remove('fullscreen')
+      fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'
+    }
+  })
+  
+  document.addEventListener('webkitfullscreenchange', function() {
+    const dialog = document.getElementById('videoPlayerDialog')
+    const fullscreenBtn = document.getElementById('fullscreenBtn')
+    if (!document.webkitFullscreenElement) {
+      dialog.classList.remove('fullscreen')
+      fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'
+    }
+  })
+  
+  document.addEventListener('mozfullscreenchange', function() {
+    const dialog = document.getElementById('videoPlayerDialog')
+    const fullscreenBtn = document.getElementById('fullscreenBtn')
+    if (!document.mozFullScreenElement) {
+      dialog.classList.remove('fullscreen')
+      fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'
+    }
+  })
+  
+  document.addEventListener('MSFullscreenChange', function() {
+    const dialog = document.getElementById('videoPlayerDialog')
+    const fullscreenBtn = document.getElementById('fullscreenBtn')
+    if (!document.msFullscreenElement) {
+      dialog.classList.remove('fullscreen')
+      fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'
+    }
+  })
 })
 $('#close').click(function () {
   $('#popup').css('display', 'none')
@@ -1454,6 +1726,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
+  // Download confirm dialog handlers
+  const closeDownloadConfirmBtn = document.getElementById('closeDownloadConfirm');
+  const downloadCancelBtn = document.getElementById('downloadCancelBtn');
+  const downloadConfirmBtn = document.getElementById('downloadConfirmBtn');
+  
+  if (closeDownloadConfirmBtn) {
+    closeDownloadConfirmBtn.onclick = closeDownloadConfirm;
+  }
+  if (downloadCancelBtn) {
+    downloadCancelBtn.onclick = closeDownloadConfirm;
+  }
+  if (downloadConfirmBtn) {
+    downloadConfirmBtn.onclick = confirmDownload;
+  }
+  
   // Load saved view mode or set default
   const savedMode = localStorage.getItem('viewMode') || 'grid';
   setViewMode(savedMode);
@@ -1656,6 +1943,371 @@ function setViewMode(mode) {
     }
   });
   
+  // If list-multi mode, create table view
+  if (mode === 'list-multi') {
+    // Hide all original items first
+    const originalItems = dropZone.querySelectorAll('.folder-link, .item, .selection-box');
+    originalItems.forEach(item => {
+      if (item && item.style) {
+        item.style.display = 'none';
+        item.style.visibility = 'hidden';
+        item.style.opacity = '0';
+        item.style.height = '0';
+        item.style.width = '0';
+        item.style.margin = '0';
+        item.style.padding = '0';
+        item.style.overflow = 'hidden';
+      }
+    });
+    
+    // Create table view
+    createTableView();
+  } else {
+    // Remove table if exists
+    const existingTable = dropZone.querySelector('.table-container');
+    if (existingTable) {
+      existingTable.remove();
+    }
+    
+    // Show original items again
+    const originalItems = dropZone.querySelectorAll('.folder-link, .item, .selection-box');
+    originalItems.forEach(item => {
+      if (item && item.style) {
+        item.style.display = '';
+        item.style.visibility = '';
+        item.style.opacity = '';
+        item.style.height = '';
+        item.style.width = '';
+        item.style.margin = '';
+        item.style.padding = '';
+        item.style.overflow = '';
+      }
+    });
+  }
+  
   // Save to localStorage
   localStorage.setItem('viewMode', mode);
+}
+
+// Function to create table view for list-multi mode
+function createTableView() {
+  const dropZone = document.getElementById('dropZone');
+  
+  // Remove existing table if any
+  const existingTable = dropZone.querySelector('.table-container');
+  if (existingTable) {
+    existingTable.remove();
+  }
+  
+  // Ensure all original items are hidden before querying
+  const allOriginalItems = dropZone.querySelectorAll('.folder-link, .item, .selection-box');
+  allOriginalItems.forEach(item => {
+    if (item && item.style) {
+      item.style.display = 'none';
+      item.style.visibility = 'hidden';
+      item.style.opacity = '0';
+      item.style.height = '0';
+      item.style.width = '0';
+      item.style.margin = '0';
+      item.style.padding = '0';
+      item.style.overflow = 'hidden';
+    }
+  });
+  
+  // Get all items (folders and files) - query from DOM before hiding
+  const folders = Array.from(document.querySelectorAll('#dropZone .item_folder'));
+  const files = Array.from(document.querySelectorAll('#dropZone .item:not(.item_folder)'));
+  const allItems = [...folders, ...files];
+  
+  if (allItems.length === 0) {
+    // Show message if no items
+    const noItemsMsg = document.createElement('div');
+    noItemsMsg.style.cssText = 'padding: 20px; text-align: center; color: #888; font-size: 14px;';
+    noItemsMsg.textContent = 'No files or folders to display';
+    dropZone.appendChild(noItemsMsg);
+    return;
+  }
+  
+  // Create table structure
+  const tableContainer = document.createElement('div');
+  tableContainer.className = 'table-container';
+  
+  const table = document.createElement('table');
+  
+  // Create header
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
+    <th>#</th>
+    <th>Name</th>
+    <th>Download</th>
+  `;
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+  
+  // Create body
+  const tbody = document.createElement('tbody');
+  
+  allItems.forEach((item, index) => {
+    const row = document.createElement('tr');
+    row.className = 'selectable-item';
+    
+    // Get item info
+    const link = item.closest('.folder-link');
+    let systemPath = '';
+    let itemName = '';
+    let isFolder = false;
+    let isFile = false;
+    
+    if (link) {
+      // Try to get systemPath from onclick or ondblclick
+      const onclickAttr = link.getAttribute('onclick') || '';
+      const ondblclickAttr = link.getAttribute('ondblclick') || '';
+      const pathMatch = onclickAttr.match(/'([^']+)'/) || ondblclickAttr.match(/'([^']+)'/);
+      if (pathMatch) {
+        systemPath = pathMatch[1];
+      } else {
+        // Fallback: get from system_path input
+        const systemPathInput = document.getElementById('system_path');
+        if (systemPathInput) {
+          systemPath = systemPathInput.value;
+        }
+      }
+      
+      // Get item name
+      const txtElement = item.querySelector('.txt');
+      if (txtElement) {
+        itemName = txtElement.textContent.trim();
+      }
+      
+      // Check if folder or file
+      isFolder = item.classList.contains('item_folder');
+      isFile = !isFolder;
+    }
+    
+    // Get icon
+    let iconClass = 'fa-solid fa-file';
+    let iconColor = '#f1f1f1';
+    if (isFolder) {
+      iconClass = 'fa-solid fa-folder';
+      iconColor = '#1e89cb';
+    } else {
+      const icon = item.querySelector('i');
+      if (icon) {
+        iconClass = icon.className;
+        // Get color from style if exists
+        const style = icon.getAttribute('style');
+        if (style && style.includes('color:')) {
+          const colorMatch = style.match(/color:\s*([^;]+)/);
+          if (colorMatch) {
+            iconColor = colorMatch[1].trim();
+          }
+        }
+      }
+    }
+    
+    // Row number
+    const tdNumber = document.createElement('td');
+    tdNumber.textContent = index + 1;
+    row.appendChild(tdNumber);
+    
+    // Name with icon
+    const tdName = document.createElement('td');
+    tdName.innerHTML = `
+      <i class="${iconClass}" style="color: ${iconColor};"></i>
+      <span class="item-name">${itemName}</span>
+    `;
+    row.appendChild(tdName);
+    
+    // Download button
+    const tdDownload = document.createElement('td');
+    const downloadBtn = document.createElement('button');
+    downloadBtn.className = 'download-btn';
+    downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i> Download';
+    downloadBtn.onclick = function(e) {
+      e.stopPropagation();
+      showDownloadConfirm(systemPath, itemName, isFolder);
+    };
+    tdDownload.appendChild(downloadBtn);
+    row.appendChild(tdDownload);
+    
+    // Add click handler for selection
+    row.onclick = function(e) {
+      if (e.target.closest('.download-btn')) return;
+      handleTableItemClick(this, systemPath, itemName, isFolder ? 0 : 1);
+    };
+    
+    // Store data attributes for easy access
+    row.setAttribute('data-system-path', systemPath);
+    row.setAttribute('data-item-name', itemName);
+    row.setAttribute('data-is-folder', isFolder);
+    
+    tbody.appendChild(row);
+  });
+  
+  table.appendChild(tbody);
+  tableContainer.appendChild(table);
+  dropZone.appendChild(tableContainer);
+}
+
+// Select All functionality
+function selectAllItems() {
+  if (!wail_select) {
+    alert("Please enable selection mode first");
+    return;
+  }
+  
+  const dropZone = document.getElementById('dropZone');
+  if (!dropZone) return;
+  
+  const systemPath = document.getElementById('system_path').value;
+  
+  // Get all folder links (both folders and files are wrapped in .folder-link)
+  const folderLinks = dropZone.querySelectorAll('.folder-link');
+  
+  // Select all items using handleClickSelect
+  folderLinks.forEach(link => {
+    const txt = link.querySelector('.txt');
+    if (!txt) return;
+    
+    const itemName = txt.textContent.trim();
+    if (!itemName) return;
+    
+    // Check if already selected
+    const itemElement = link.querySelector('.item');
+    if (itemElement && itemElement.classList.contains('is_select')) {
+      return; // Already selected, skip
+    }
+    
+    // Determine if it's a file or folder by checking onclick attribute or class
+    let isFile = false;
+    const onclickAttr = link.getAttribute('onclick');
+    if (onclickAttr && onclickAttr.includes(',1)')) {
+      isFile = true;
+    } else if (link.querySelector('.item_file') || link.classList.contains('item_file')) {
+      isFile = true;
+    }
+    
+    // Call handleClickSelect to properly add to selection
+    if (typeof handleClickSelect === 'function') {
+      handleClickSelect(link, systemPath, itemName, isFile ? 1 : 0);
+    }
+  });
+  
+  // Update table view selection if active
+  if (dropZone.classList.contains('view-list-multi')) {
+    const rows = dropZone.querySelectorAll('table tbody tr');
+    rows.forEach(row => {
+      const nameCell = row.querySelector('.item-name');
+      if (nameCell) {
+        const itemName = nameCell.textContent.trim();
+        if (selectedItems.includes(itemName) || selectedfile.includes(itemName)) {
+          row.classList.add('selected');
+        }
+      }
+    });
+  }
+  
+  // Show action buttons
+  updateActionButtonsVisibility();
+  
+  console.log("Selected all items - Folders:", selectedItems.length, "Files:", selectedfile.length);
+}
+
+// Update action buttons visibility based on selection
+function updateActionButtonsVisibility() {
+  const hasSelection = selectedItems.length > 0 || selectedfile.length > 0;
+  
+  // Show/hide dropdown items
+  $('#selectDownload').toggleClass('d-none', !hasSelection);
+  $('#copyBtn').toggleClass('d-none', !hasSelection);
+  $('#cutBtn').toggleClass('d-none', !hasSelection);
+  $('#renameBtn').toggleClass('d-none', !(selectedItems.length === 1 && selectedfile.length === 0) && !(selectedfile.length === 1 && selectedItems.length === 0));
+  $('#deleteBtn').toggleClass('d-none', !hasSelection);
+  
+  // Show/hide OpenFile button
+  if ((selectedfile.length === 1 && selectedItems.length === 0) || 
+      (selectedItems.length === 1 && selectedfile.length === 0)) {
+    $("#OpenFile").removeClass("d-none");
+  } else {
+    $("#OpenFile").addClass("d-none");
+  }
+}
+
+// Handle table item click for selection
+function handleTableItemClick(element, systemPath, itemName, isFile) {
+  // Find the original item to trigger selection
+  const dropZone = document.getElementById('dropZone');
+  const originalItems = dropZone.querySelectorAll('.selectable-item');
+  
+  originalItems.forEach(item => {
+    const txt = item.querySelector('.txt');
+    if (txt && txt.textContent.trim() === itemName) {
+      // Trigger click on original item for selection
+      if (typeof handleClickSelect === 'function') {
+        const link = item.closest('.folder-link');
+        if (link) {
+          handleClickSelect(link, systemPath, itemName, isFile);
+        }
+      }
+      
+      // Update table row selection
+      const rows = document.querySelectorAll('.view-list-multi table tbody tr');
+      rows.forEach(row => {
+        row.classList.remove('selected');
+        const nameCell = row.querySelector('.item-name');
+        if (nameCell && nameCell.textContent.trim() === itemName) {
+          row.classList.add('selected');
+        }
+      });
+    }
+  });
+}
+
+// Show download confirm dialog
+function showDownloadConfirm(systemPath, itemName, isFolder) {
+  const dialog = document.getElementById('downloadConfirmDialog');
+  const message = document.getElementById('downloadConfirmMessage');
+  
+  message.textContent = `Are you sure you want to download "${itemName}"?`;
+  
+  dialog.style.display = 'flex';
+  
+  // Store download info
+  window.pendingDownload = {
+    systemPath: systemPath,
+    itemName: itemName,
+    isFolder: isFolder
+  };
+}
+
+// Close download confirm dialog
+function closeDownloadConfirm() {
+  const dialog = document.getElementById('downloadConfirmDialog');
+  dialog.style.display = 'none';
+  window.pendingDownload = null;
+}
+
+// Handle download confirm
+function confirmDownload() {
+  if (!window.pendingDownload) return;
+  
+  const { systemPath, itemName, isFolder } = window.pendingDownload;
+  
+  if (isFolder) {
+    // For folders, use the download_folders API
+    if (typeof downloadSelectedFiles === 'function') {
+      // Set selected items temporarily
+      window.selectedItems = [itemName];
+      window.selectedfile = [];
+      downloadSelectedFiles();
+    }
+  } else {
+    // For files, use download_one
+    if (typeof download_one === 'function') {
+      download_one(itemName);
+    }
+  }
+  
+  closeDownloadConfirm();
 }

@@ -1,6 +1,7 @@
 import os
 import platform
 import string
+import mimetypes
 from flask import Flask, render_template, request,send_file,abort,jsonify,Response,send_from_directory
 import zipfile
 from flask_socketio import SocketIO
@@ -189,6 +190,56 @@ def safe_delete(file_path):
             print(f"Deleted ZIP file: {file_path}")
     except Exception as e:
         print(f"Error deleting ZIP file: {e}")
+
+def send_file_partial_video(file_path, filename):
+    """Send video file with proper MIME type and inline disposition for playback."""
+    file_size = os.path.getsize(file_path)
+    range_header = request.headers.get('Range')
+    
+    # Get MIME type for video
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if not mime_type:
+        # Default MIME types for common video formats
+        ext = os.path.splitext(filename)[1].lower()
+        mime_map = {
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+            '.ogg': 'video/ogg',
+            '.avi': 'video/x-msvideo',
+            '.mov': 'video/quicktime',
+            '.mkv': 'video/x-matroska',
+            '.flv': 'video/x-flv',
+            '.wmv': 'video/x-ms-wmv'
+        }
+        mime_type = mime_map.get(ext, 'video/mp4')
+    
+    if range_header:
+        byte_start, byte_end = parse_range_header(range_header, file_size)
+        content_length = byte_end - byte_start + 1
+
+        def generate():
+            with open(file_path, "rb") as f:
+                f.seek(byte_start)
+                remaining = content_length
+                while remaining > 0:
+                    chunk_size = min(8 * 1024 * 1024, remaining)  # 8MB chunks or remaining bytes
+                    chunk = f.read(chunk_size)
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        response = Response(generate(), status=206, content_type=mime_type)
+        response.headers["Content-Range"] = f"bytes {byte_start}-{byte_end}/{file_size}"
+        response.headers["Content-Length"] = str(content_length)
+    else:
+        response = send_file(file_path, mimetype=mime_type, as_attachment=False)
+        response.headers["Content-Length"] = str(file_size)
+
+    response.headers["Accept-Ranges"] = "bytes"
+    response.headers["Content-Disposition"] = f'inline; filename="{filename}"'
+    response.headers["Content-Type"] = mime_type
+    return response
         
 @app.route('/download/<zip_name>')
 def download(zip_name):
@@ -197,8 +248,20 @@ def download(zip_name):
         return abort(400, "Missing file path")
     zip_path = os.path.join(pathfile, zip_name)
     
-    return send_file_partial(zip_path,zip_name)
-    #return send_file(zip_path, as_attachment=True)
+    # Check if file exists
+    if not os.path.exists(zip_path):
+        return abort(404, "File not found")
+    
+    # Check if it's a video file - serve inline for video playback
+    video_extensions = ['.mp4', '.webm', '.ogg', '.avi', '.mov', '.mkv', '.flv', '.wmv']
+    file_ext = os.path.splitext(zip_name)[1].lower()
+    
+    if file_ext in video_extensions:
+        # For video files, serve inline (not as attachment) for playback
+        return send_file_partial_video(zip_path, zip_name)
+    else:
+        # For other files, serve as attachment (download)
+        return send_file_partial(zip_path, zip_name)
 
 def zip_folder(folder_path, zip_path):
     """Zips a folder into a ZIP archive."""
