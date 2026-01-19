@@ -1,6 +1,7 @@
 import os
 import platform
 import string
+import mimetypes
 from flask import Flask, render_template, request,send_file,abort,jsonify,Response,send_from_directory
 import zipfile
 from flask_socketio import SocketIO
@@ -13,23 +14,35 @@ import io
 
 app = Flask(__name__, template_folder="templates")
 socketio = SocketIO(app, cors_allowed_origins="*") 
+
+def is_windows_system():
+    """Check if the server is running on Windows based on actual system characteristics."""
+    # Check multiple indicators for Windows
+    return (platform.system() == "Windows" or 
+            os.name == 'nt' or 
+            os.sep == '\\' or
+            (hasattr(os, 'path') and os.path.sep == '\\'))
+
 def check_System():
     system_info = platform.system()
-
-    if system_info == "Windows":
+    print(system_info)
+    # Use helper function to check Windows based on actual system
+    if is_windows_system():
         # List all available drives (C:, D:, E:, etc.)
         drives = [f"{d}:/" for d in string.ascii_uppercase if os.path.exists(f"{d}:/")]
         return drives  # Return list of drives
     elif system_info == "Linux":
-        if "Linux" in platform.uname():  # Checking for Android system
+        if "Linux" in platform.system() and "Ubuntu" not in platform.version():  # Checking for Android system
+            print("Android /storage/emulated/0")
             return ["/storage/emulated/0"]  # Android Internal Storage
         else:
             # For Ubuntu/Linux, list all mounted file systems
             mounts = []
             with os.popen('mount -v') as f:
-                for line in f.readlines():
+                for line in f:
                     if "on" in line:  # Identify mount points
                         parts = line.split()
+                        print(parts)
                         mounts.append(parts[2])  # The mount point is the third element
             return mounts
     else:
@@ -37,20 +50,28 @@ def check_System():
 
 @app.route('/')
 def index():
-      drives = check_System()
-      
-      # Get selected path (default to first drive if available)
-      selected_path = request.args.get('path', drives[0] if drives else None)
+    drives = check_System()
+    
+    # Get selected path (default to first drive or user home)
+    selected_path = request.args.get('path', drives[0] if drives else os.path.expanduser("~"))
 
-      folders, files = [], []
-      if selected_path and os.path.exists(selected_path):
+    folders, files, file_types = [], [], {}
+    if selected_path and os.path.exists(selected_path) and os.path.isdir(selected_path):
+        try:
             folders = [f for f in os.listdir(selected_path) if os.path.isdir(os.path.join(selected_path, f))]
             files = [f for f in os.listdir(selected_path) if os.path.isfile(os.path.join(selected_path, f))]
+            folders.sort()
+            files.sort()
             file_types = {f: f.split('.')[-1] if '.' in f else 'Unknown' for f in files}
             print("File types:", file_types)
-            
-      return render_template("index.html", system_path=selected_path, drives=drives, folders=folders, files=files,file_types=file_types)
-
+        except PermissionError:
+            folders, files, file_types = [], [], {}
+    
+    return render_template("index.html", system_path=selected_path, drives=drives,
+                           folders=folders, files=files, file_types=file_types)
+    
+    
+    
 @app.route('/download_folders', methods=['POST'])
 def download_folders():
     data = request.get_json()
@@ -169,6 +190,56 @@ def safe_delete(file_path):
             print(f"Deleted ZIP file: {file_path}")
     except Exception as e:
         print(f"Error deleting ZIP file: {e}")
+
+def send_file_partial_video(file_path, filename):
+    """Send video file with proper MIME type and inline disposition for playback."""
+    file_size = os.path.getsize(file_path)
+    range_header = request.headers.get('Range')
+    
+    # Get MIME type for video
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if not mime_type:
+        # Default MIME types for common video formats
+        ext = os.path.splitext(filename)[1].lower()
+        mime_map = {
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+            '.ogg': 'video/ogg',
+            '.avi': 'video/x-msvideo',
+            '.mov': 'video/quicktime',
+            '.mkv': 'video/x-matroska',
+            '.flv': 'video/x-flv',
+            '.wmv': 'video/x-ms-wmv'
+        }
+        mime_type = mime_map.get(ext, 'video/mp4')
+    
+    if range_header:
+        byte_start, byte_end = parse_range_header(range_header, file_size)
+        content_length = byte_end - byte_start + 1
+
+        def generate():
+            with open(file_path, "rb") as f:
+                f.seek(byte_start)
+                remaining = content_length
+                while remaining > 0:
+                    chunk_size = min(8 * 1024 * 1024, remaining)  # 8MB chunks or remaining bytes
+                    chunk = f.read(chunk_size)
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        response = Response(generate(), status=206, content_type=mime_type)
+        response.headers["Content-Range"] = f"bytes {byte_start}-{byte_end}/{file_size}"
+        response.headers["Content-Length"] = str(content_length)
+    else:
+        response = send_file(file_path, mimetype=mime_type, as_attachment=False)
+        response.headers["Content-Length"] = str(file_size)
+
+    response.headers["Accept-Ranges"] = "bytes"
+    response.headers["Content-Disposition"] = f'inline; filename="{filename}"'
+    response.headers["Content-Type"] = mime_type
+    return response
         
 @app.route('/download/<zip_name>')
 def download(zip_name):
@@ -177,8 +248,20 @@ def download(zip_name):
         return abort(400, "Missing file path")
     zip_path = os.path.join(pathfile, zip_name)
     
-    return send_file_partial(zip_path,zip_name)
-    #return send_file(zip_path, as_attachment=True)
+    # Check if file exists
+    if not os.path.exists(zip_path):
+        return abort(404, "File not found")
+    
+    # Check if it's a video file - serve inline for video playback
+    video_extensions = ['.mp4', '.webm', '.ogg', '.avi', '.mov', '.mkv', '.flv', '.wmv']
+    file_ext = os.path.splitext(zip_name)[1].lower()
+    
+    if file_ext in video_extensions:
+        # For video files, serve inline (not as attachment) for playback
+        return send_file_partial_video(zip_path, zip_name)
+    else:
+        # For other files, serve as attachment (download)
+        return send_file_partial(zip_path, zip_name)
 
 def zip_folder(folder_path, zip_path):
     """Zips a folder into a ZIP archive."""
@@ -316,6 +399,258 @@ def create_folder():
             return jsonify({"error": f"Folder '{folder_name}' already exists at {folder_path}"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/create_file', methods=['POST'])
+def create_file():
+    """API to create a new empty file."""
+    data = request.get_json()
+    
+    system_path = data.get('system_path')
+    file_name = data.get('file_name')
+    
+    if not system_path or not file_name:
+        return jsonify({"error": "Missing required parameters: 'system_path' and 'file_name'"}), 400
+    
+    try:
+        # Normalize and clean paths
+        system_path = os.path.normpath(system_path)
+        file_name = file_name.strip()
+        
+        # Validate file name for invalid characters (OS-specific based on server deployment)
+        if is_windows_system():
+            invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+        else:  # Linux/Unix
+            invalid_chars = ['/', '\0']  # / is path separator, \0 is null character
+            # Also check for reserved names on Linux
+            reserved_names = ['', '.', '..']
+            if file_name in reserved_names:
+                return jsonify({"error": f"'{file_name}' is a reserved name"}), 400
+        
+        if any(char in file_name for char in invalid_chars):
+            return jsonify({"error": f"Invalid characters in file name: {', '.join(invalid_chars)}"}), 400
+        
+        # Construct the full file path using os.path.join for cross-platform compatibility
+        file_path = os.path.join(system_path, file_name)
+        
+        # Normalize the path to handle any double separators or issues
+        file_path = os.path.normpath(file_path)
+        
+        # Security check: ensure the file is inside system_path
+        file_path_abs = os.path.abspath(file_path)
+        system_path_abs = os.path.abspath(system_path)
+        
+        if not file_path_abs.startswith(system_path_abs):
+            return jsonify({"error": f"Access denied: File path must be within system_path. Attempted: {file_path_abs}, System path: {system_path_abs}"}), 403
+        
+        # Ensure parent directory exists
+        parent_dir = os.path.dirname(file_path_abs)
+        if not os.path.exists(parent_dir):
+            try:
+                os.makedirs(parent_dir, exist_ok=True)
+            except Exception as e:
+                return jsonify({"error": f"Cannot create parent directory: {str(e)}"}), 500
+        
+        # Check if file already exists
+        if os.path.exists(file_path_abs):
+            return jsonify({"error": f"File '{file_name}' already exists at {file_path_abs}"}), 400
+        
+        # Create empty file
+        with open(file_path_abs, 'w', encoding='utf-8') as f:
+            pass  # Create empty file
+        
+        return jsonify({"message": f"File '{file_name}' created successfully at {file_path_abs}"}), 200
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        return jsonify({"error": f"{str(e)}\n\nDetails:\n{error_details}"}), 500
+
+@app.route('/rename', methods=['POST'])
+def rename_path():
+    """API to rename a file or folder. Works on both Linux and Windows."""
+    data = request.get_json()
+    old_name = data.get('old_name')
+    new_name = data.get('new_name')
+    system_path = data.get('system_path')
+    
+    if not old_name or not new_name or not system_path:
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+    
+    # Construct full paths
+    old_path = os.path.join(system_path, old_name)
+    new_path = os.path.join(system_path, new_name)
+    
+    # Security check: ensure paths are within system_path
+    old_path = os.path.abspath(old_path)
+    new_path = os.path.abspath(new_path)
+    system_path_abs = os.path.abspath(system_path)
+    
+    if not old_path.startswith(system_path_abs) or not new_path.startswith(system_path_abs):
+        return jsonify({"success": False, "error": "Access denied"}), 403
+    
+    try:
+        # Check if old path exists
+        if not os.path.exists(old_path):
+            return jsonify({"success": False, "error": "File or folder not found"}), 404
+        
+        # Check if new name already exists
+        if os.path.exists(new_path):
+            return jsonify({"success": False, "error": f"'{new_name}' already exists"}), 400
+        
+        # Validate new name (prevent invalid characters)
+        invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+        if any(char in new_name for char in invalid_chars):
+            return jsonify({"success": False, "error": f"Invalid characters in name: {', '.join(invalid_chars)}"}), 400
+        
+        # Rename using os.rename() - works on both Linux and Windows
+        os.rename(old_path, new_path)
+        
+        return jsonify({"success": True, "message": f"Renamed '{old_name}' to '{new_name}'"}), 200
+        
+    except OSError as e:
+        return jsonify({"success": False, "error": f"OS error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/copy', methods=['POST'])
+def copy_files():
+    """API to copy files and folders. Works on both Linux and Windows."""
+    data = request.get_json()
+    source_path = data.get('source_path')
+    items = data.get('items', [])  # List of file/folder names (may include renamed items)
+    destination_path = data.get('destination_path')
+    overwrite = data.get('overwrite', False)  # Whether to overwrite existing files
+    
+    if not source_path or not items or not destination_path:
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+    
+    # Security check
+    source_path_abs = os.path.abspath(source_path)
+    destination_path_abs = os.path.abspath(destination_path)
+    
+    copied_items = []
+    errors = []
+    
+    for item_name in items:
+        try:
+            # Get original name from source (item_name might be renamed)
+            # For now, assume item_name matches source name
+            source_item_path = os.path.join(source_path, item_name)
+            destination_item_path = os.path.join(destination_path, item_name)
+            
+            # Security check
+            source_item_path = os.path.abspath(source_item_path)
+            destination_item_path = os.path.abspath(destination_item_path)
+            
+            if not source_item_path.startswith(source_path_abs):
+                errors.append(f"Access denied: {item_name}")
+                continue
+            
+            if not os.path.exists(source_item_path):
+                errors.append(f"Not found: {item_name}")
+                continue
+            
+            # Check if destination exists
+            if os.path.exists(destination_item_path) and not overwrite:
+                errors.append(f"Already exists: {item_name}")
+                continue
+            
+            # Copy file or folder
+            if os.path.isfile(source_item_path):
+                if os.path.exists(destination_item_path) and overwrite:
+                    os.remove(destination_item_path)
+                shutil.copy2(source_item_path, destination_item_path)
+            elif os.path.isdir(source_item_path):
+                if os.path.exists(destination_item_path) and overwrite:
+                    shutil.rmtree(destination_item_path)
+                shutil.copytree(source_item_path, destination_item_path, dirs_exist_ok=True)
+            
+            copied_items.append(item_name)
+            
+        except Exception as e:
+            errors.append(f"Error copying {item_name}: {str(e)}")
+    
+    if errors:
+        return jsonify({"success": True, "copied": copied_items, "errors": errors}), 200
+    else:
+        return jsonify({"success": True, "copied": copied_items, "message": "All items copied successfully"}), 200
+
+@app.route('/move', methods=['POST'])
+def move_files():
+    """API to move (cut) files and folders. Works on both Linux and Windows."""
+    data = request.get_json()
+    source_path = data.get('source_path')
+    items = data.get('items', [])  # List of file/folder names (may include renamed items)
+    destination_path = data.get('destination_path')
+    overwrite = data.get('overwrite', False)  # Whether to overwrite existing files
+    
+    if not source_path or not items or not destination_path:
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+    
+    # Security check
+    source_path_abs = os.path.abspath(source_path)
+    destination_path_abs = os.path.abspath(destination_path)
+    
+    moved_items = []
+    errors = []
+    
+    for item_name in items:
+        try:
+            # Get original name from source (item_name might be renamed)
+            source_item_path = os.path.join(source_path, item_name)
+            destination_item_path = os.path.join(destination_path, item_name)
+            
+            # Security check
+            source_item_path = os.path.abspath(source_item_path)
+            destination_item_path = os.path.abspath(destination_item_path)
+            
+            if not source_item_path.startswith(source_path_abs):
+                errors.append(f"Access denied: {item_name}")
+                continue
+            
+            if not os.path.exists(source_item_path):
+                errors.append(f"Not found: {item_name}")
+                continue
+            
+            # Check if destination exists
+            if os.path.exists(destination_item_path) and not overwrite:
+                errors.append(f"Already exists: {item_name}")
+                continue
+            
+            # Move file or folder
+            if os.path.exists(destination_item_path) and overwrite:
+                if os.path.isfile(destination_item_path):
+                    os.remove(destination_item_path)
+                elif os.path.isdir(destination_item_path):
+                    shutil.rmtree(destination_item_path)
+            
+            shutil.move(source_item_path, destination_item_path)
+            moved_items.append(item_name)
+            
+        except Exception as e:
+            errors.append(f"Error moving {item_name}: {str(e)}")
+    
+    if errors:
+        return jsonify({"success": True, "moved": moved_items, "errors": errors}), 200
+    else:
+        return jsonify({"success": True, "moved": moved_items, "message": "All items moved successfully"}), 200
+
+@app.route('/check_conflicts', methods=['POST'])
+def check_conflicts():
+    """API to check if files/folders exist in destination before paste."""
+    data = request.get_json()
+    destination_path = data.get('destination_path')
+    items = data.get('items', [])
+    
+    if not destination_path or not items:
+        return jsonify({"success": False, "error": "Missing required parameters"}), 400
+    
+    conflicts = []
+    for item_name in items:
+        item_path = os.path.join(destination_path, item_name)
+        if os.path.exists(item_path):
+            conflicts.append(item_name)
+    
+    return jsonify({"success": True, "conflicts": conflicts}), 200
     
 @app.route('/image_view/<filename>')
 def image_view(filename):

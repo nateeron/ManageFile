@@ -1,23 +1,27 @@
 
+.drag-area {
+    position: relative;
+}
+
 .selection-box {
     position: absolute;
     border: 2px dashed rgb(43, 154, 206);
     background-color: rgba(147, 217, 235, 0.2);
     display: none;
+    pointer-events: none;
+    z-index: 1000;
+    box-sizing: border-box;
 }
 .selectable-item {
-    /* position: absolute;
-    width: 80px;
-    height: 80px;
-    background: lightgray;
-    border: 1px solid #999;
-    text-align: center;
-    line-height: 80px;
-    font-size: 14px; */
     user-select: none;
+    position: relative;
 }
 
 .selectable-item.selected {
-    background: rgb(43 43 43);
-    color: white;
+    background: rgba(43, 154, 206, 0.3) !important;
+    border: 2px solid rgb(43, 154, 206) !important;
+}
+
+.selectable-item.selected .item {
+    background-color: rgba(43, 154, 206, 0.2) !important;
 }

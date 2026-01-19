@@ -55,7 +55,7 @@ function handleClickSelect(e, systemPath, folderName, i = 0) {
                 selectedItems.push(folderName); // Add to selection
             }
             if (!$element.find(".select-icon").length) {
-                $element.find(".item").append('<i class="fa-solid fa-check select-icon"></i>');
+                $element.find(".item").append('<div class="select-icon"></div>');
                 $element.find(".item").addClass("is_select");
             }
         } else {
@@ -71,12 +71,29 @@ function handleClickSelect(e, systemPath, folderName, i = 0) {
 
         console.log("Selected folders:", selectedItems);
         console.log("Selected file:", selectedfile);
+        
+        // Update Select All button text
+        if (typeof updateSelectAllButtonText === 'function') {
+            updateSelectAllButtonText();
+        }
+        
+        // Show/hide OpenFile button based on selection
+        // Show Open button when exactly one file OR one folder is selected
+        if ((selectedfile.length === 1 && selectedItems.length === 0) || 
+            (selectedItems.length === 1 && selectedfile.length === 0)) {
+            $("#OpenFile").removeClass("d-none");
+        } else {
+            $("#OpenFile").addClass("d-none");
+        }
     }
 }
 
 function handleDoubleClick(systemPath, folderName) {
     // Handle double-click (e.g., navigate to folder)
-    window.location.href = "/?path=" + systemPath + "/" + folderName;
+    // Normalize path separator for Windows/Linux compatibility
+    const separator = systemPath.includes('\\') ? '\\' : '/';
+    const fullPath = systemPath + (systemPath.endsWith('/') || systemPath.endsWith('\\') ? '' : separator) + folderName;
+    window.location.href = "/?path=" + encodeURIComponent(fullPath);
 }
 function selectdive(e) {
     const parent = $(e).closest('.menu_left');
@@ -147,13 +164,24 @@ $(document).ready(function () {
         // timer = setTimeout(function () {
             console.log("Hold");
             $("#selectDownload").removeClass("d-none");
+            $("#copyBtn").removeClass("d-none");
+            $("#cutBtn").removeClass("d-none");
+            $("#renameBtn").removeClass("d-none");
             $("#deleteBtn").removeClass("d-none");
+            
+            // Show Open button when exactly one file OR one folder is selected
+            if ((selectedfile.length === 1 && selectedItems.length === 0) || 
+                (selectedItems.length === 1 && selectedfile.length === 0)) {
+                $("#OpenFile").removeClass("d-none");
+            } else {
+                $("#OpenFile").addClass("d-none");
+            }
 
-            // Add a checkmark icon when long pressed
+            // Add a selection indicator when long pressed
             if (!$this.find(".select-icon").length) {
                 $(".item").addClass("wait_select");
                 $this.find(".item").addClass("is_select");
-                $this.find(".item").append('<i class="fa-solid fa-check select-icon"></i>');
+                $this.find(".item").append('<div class="select-icon"></div>');
                 wail_select = true;
             }
         // }, holdTime);
@@ -163,15 +191,41 @@ $(document).ready(function () {
         clearTimeout(timer); // Cancel if user releases before holdTime
     });
 
-    // Remove icon when clicking anywhere else
+    // Remove icon when clicking anywhere else (but not on popups)
     $(document).on("click", function (e) {
+        // Don't clear selection if we just ended a drag operation
+        if ($(document).data('endingDrag')) {
+            return;
+        }
+        
+        // Don't clear selection if clicking on popup elements
+        if ($(e.target).closest(".popup").length || 
+            $(e.target).closest("#renamePopup").length ||
+            $(e.target).closest("#popup").length ||
+            $(e.target).closest("#pasteConflictDialog").length) {
+            return;
+        }
+        
+        // Don't clear selection if clicking on tabMenu, dropdown toggle, or dropdown menu
+        if ($(e.target).closest("#tabMenu").length ||
+            $(e.target).closest(".dropdown-toggle").length ||
+            $(e.target).closest(".dropdown-menu").length ||
+            $(e.target).closest(".dropdown").length) {
+            return;
+        }
+        
         if (!$(e.target).closest(".folder-link").length) {
             $(".select-icon").remove();
             $(".item").removeClass("wait_select");
             $(".item").removeClass("is_select");
             wail_select = false;
             $("#selectDownload").addClass("d-none");
+            $("#copyBtn").addClass("d-none");
+            $("#cutBtn").addClass("d-none");
+            $("#renameBtn").addClass("d-none");
             $("#deleteBtn").addClass("d-none");
+            $("#OpenFile").addClass("d-none");
+            // Don't hide paste button - it should stay visible if clipboard has data
 
             selectedItems = [];
             selectedfile = [];
