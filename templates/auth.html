@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% if mode == 'setup' %}Create account{% elif mode == 'account' %}Account settings{% else %}Sign in{% endif %} · ManageFile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}" />
+</head>
+<body>
+  <main class="auth-card">
+    <a class="brand" href="/">M<span>ManageFile</span></a>
+    {% if mode == 'local_setup' %}
+      <h1>Set up on this computer</h1>
+      <p>Create your first account by opening <strong>http://127.0.0.1:{{ config.get('MANAGEFILE_PORT', 1298) }}/setup</strong> on the computer running ManageFile.</p>
+    {% else %}
+      <div class="eyebrow">{% if mode == 'setup' %}GET STARTED{% elif mode == 'account' %}YOUR ACCOUNT{% else %}WELCOME BACK{% endif %}</div>
+      <h1>{% if mode == 'setup' %}Create your account{% elif mode == 'account' %}Account settings{% else %}Sign in{% endif %}</h1>
+      <p>{% if mode == 'setup' %}Set the username and password used to access your files.{% elif mode == 'account' %}Update your username and password. Other sessions will be signed out.{% else %}Sign in to browse and manage your files.{% endif %}</p>
+      {% if error %}<div class="error" role="alert">{{ error }}</div>{% endif %}
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ auth_csrf if mode == 'account' else form_token }}" />
+        {% if mode != 'account' %}<input type="hidden" name="next" value="{{ next_path }}" />{% endif %}
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" minlength="3" maxlength="64" value="{{ auth_user if mode == 'account' else '' }}" required autofocus />
+        {% if mode == 'account' %}
+          <label for="currentPassword">Current password</label>
+          <input id="currentPassword" name="current_password" type="password" autocomplete="current-password" maxlength="128" required />
+        {% endif %}
+        <label for="password">{% if mode == 'account' %}New password{% else %}Password{% endif %}</label>
+        <input id="password" name="password" type="password" autocomplete="{{ 'current-password' if mode == 'login' else 'new-password' }}" {% if mode != 'login' %}minlength="8"{% endif %} maxlength="128" required />
+        {% if mode != 'login' %}
+          <small>Use at least 8 characters.</small>
+          <label for="confirmPassword">Confirm password</label>
+          <input id="confirmPassword" name="confirm_password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required />
+        {% endif %}
+        <button type="submit">{% if mode == 'setup' %}Create account{% elif mode == 'account' %}Save changes{% else %}Sign in{% endif %}</button>
+      </form>
+      <div class="auth-footer">{% if mode == 'account' %}<a href="/">← Back to files</a>{% else %}Your session expires 6 hours after sign-in.{% endif %}</div>
+    {% endif %}
+  </main>
+</body>
+</html>

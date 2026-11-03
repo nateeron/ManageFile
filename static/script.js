@@ -234,7 +234,7 @@ $(document).ready(function () {
 });
 var host = window.location.hostname; // Get current domain/IP
 var port = "1298"; // Set your WebSocket port
-var socket = io.connect("http://" + host + ":" + port);
+var socket = io();
 
 // var socket = io.connect("http://10.88.88.132:1298");
 

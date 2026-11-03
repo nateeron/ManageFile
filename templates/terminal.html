@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="auth-csrf" content="{{ auth_csrf }}" />
+  <meta name="auth-expires" content="{{ auth_expires }}" />
+  <title>Terminal · ManageFile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='explorer-ui.css') }}" />
+  <script src="{{ url_for('static', filename='auth-client.js') }}"></script>
+</head>
+<body class="terminal-page" data-terminal-page="true">
+  <input type="hidden" id="terminalInitialPath" value="{{ terminal_path }}" />
+  {% set terminal_standalone = true %}
+  {% include 'terminal-panel.html' %}
+  <script src="{{ url_for('static', filename='terminal.js') }}"></script>
+</body>
+</html>

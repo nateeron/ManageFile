@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="auth-csrf" content="{{ auth_csrf }}"><meta name="auth-expires" content="{{ auth_expires }}">
+  <title>Ubuntu Monitor · ManageFile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='monitor.css') }}">
+  <script src="{{ url_for('static', filename='auth-client.js') }}"></script>
+  <script src="{{ url_for('static', filename='monitor.js') }}" defer></script>
+</head>
+<body>
+<main>
+  <header><div><a class="back" href="/">← File Explorer</a><h1>Ubuntu Monitor <span id="live">LIVE</span></h1><p id="host">กำลังเชื่อมต่อเซิร์ฟเวอร์…</p></div><div class="controls"><label>รีเฟรช <select id="interval"><option value="5000">5 วินาที</option><option value="15000">15 วินาที</option><option value="30000">30 วินาที</option><option value="0">หยุดอัตโนมัติ</option></select></label><button id="refresh">รีเฟรชตอนนี้</button><form action="/logout" method="post"><input type="hidden" name="csrf_token" value="{{ auth_csrf }}"><button type="submit">Sign out</button></form></div></header>
+  <p id="error" role="alert" hidden></p>
+  <section class="metrics" aria-label="System metrics">
+    <article><h2>CPU</h2><strong id="cpu">—</strong><progress id="cpuBar" max="100" value="0"></progress><p id="load">กำลังเก็บตัวอย่าง…</p></article>
+    <article><h2>RAM</h2><strong id="ram">—</strong><progress id="ramBar" max="100" value="0"></progress><p id="ramNote">Available / Total</p></article>
+    <article><h2>DISK /</h2><strong id="disk">—</strong><progress id="diskBar" max="100" value="0"></progress><p id="diskNote">Free / Total</p></article>
+    <article><h2>NGINX</h2><strong id="nginx">—</strong><p id="boot">Boot: —</p><p id="uptime">Uptime: —</p></article>
+  </section>
+  <p class="update" id="updated" role="status">Metrics ทุก 5 วินาที · Ports / Nginx ทุก 15 วินาที</p>
+  <div class="layout">
+    <section class="panel"><div class="section-title"><h2>Ports · TCP / UDP</h2><label><input id="webOnly" type="checkbox"> เฉพาะ 80 / 443</label></div><input id="portSearch" type="search" placeholder="ค้นหา Port, โปรแกรม หรือ PID" aria-label="ค้นหา Port"><pre id="ports">กำลังโหลด…</pre></section>
+    <section class="panel"><h2>ตรวจสอบเซิร์ฟเวอร์</h2><div class="checks">
+      <button data-section="status">Nginx status</button><button data-section="config-test">ตรวจ Config</button><button data-section="nginx-log">Nginx journal · 50</button><button data-section="access-log">Access log · 50</button><button data-section="error-log">Error log · 50</button><button data-section="config">Config / Proxy / SSL paths</button><button data-section="ssl">SSL · วันหมดอายุ</button><button data-section="disks">พื้นที่ Disk ทั้งหมด</button><button data-section="partitions">Disk / Partition</button><button data-section="var-size">ขนาดโฟลเดอร์ /var</button><button data-section="process-cpu">Top 10 · CPU</button><button data-section="process-ram">Top 10 · RAM</button>
+    </div><p class="muted">คลิกเพื่อตรวจข้อมูลล่าสุด · /var อาจใช้เวลาถึง 20 วินาที<br>Process CPU เป็นค่าเฉลี่ยตลอดอายุ process</p><div class="section-title"><h3 id="detailTitle">ผลการตรวจสอบ</h3><button id="copy" disabled>คัดลอก</button></div><pre id="detail" aria-live="polite">เลือกหัวข้อด้านบนเพื่อดูรายละเอียด</pre><p id="detailTime" class="muted"></p></section>
+    <section class="panel paths"><h2>ตำแหน่งไฟล์ Nginx / เว็บไซต์</h2><dl><dt>Config หลัก</dt><dd>/etc/nginx/nginx.conf</dd><dt>Config เว็บไซต์</dt><dd>/etc/nginx/sites-available/</dd><dt>เว็บไซต์ที่เปิดใช้</dt><dd>/etc/nginx/sites-enabled/</dd><dt>Config เพิ่มเติม</dt><dd>/etc/nginx/conf.d/</dd><dt>เว็บไซต์เริ่มต้น</dt><dd>/var/www/html/</dd><dt>Access / Error log</dt><dd>/var/log/nginx/</dd><dt>Let's Encrypt</dt><dd>/etc/letsencrypt/live/&lt;domain&gt;/</dd></dl><p class="muted">ตำแหน่งจริงดูจาก “Config / Proxy / SSL paths” · หน้านี้ไม่อ่านเนื้อหา Private Key</p></section>
+  </div>
+  <footer>สิทธิ์ข้อมูลขึ้นกับบัญชีที่รันแอป หากคำสั่งต้องใช้สิทธิ์เพิ่มจะแสดงข้อความจากระบบ โดยไม่รอให้กรอกรหัส sudo</footer>
+</main>
+</body></html>

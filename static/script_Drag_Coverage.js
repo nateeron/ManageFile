@@ -189,6 +189,9 @@ $(document).ready(function () {
                     }
                 }
                 
+                // Read the current path directly; inline handler arguments are JSON encoded.
+                systemPath = document.getElementById('system_path').value;
+                isFile = !$link.find('.item_folder').length;
                 console.log("Processing item:", folderName, "isFile:", isFile, "systemPath:", systemPath);
                 console.log("wail_select:", typeof wail_select !== 'undefined' ? wail_select : 'undefined');
                 console.log("handleClickSelect function exists:", typeof handleClickSelect === 'function');

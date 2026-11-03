@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>File Explorer</title>
+  <meta name="auth-csrf" content="{{ auth_csrf }}" />
+  <meta name="auth-expires" content="{{ auth_expires }}" />
+  <script src="{{ url_for('static', filename='auth-client.js') }}"></script>
+  <title>ManageFile · File Explorer</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
@@ -72,6 +75,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/autohotkey/autohotkey.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/autoit/autoit.min.js"></script>
   <script src="https://kit.fontawesome.com/cdbdc0e61f.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='explorer-ui.css') }}" />
 </head>
 
 <body>
@@ -184,19 +188,39 @@
       </div>
     </div>
   </div>
-  <div class="container-upload">
-    <h2>📂 Upload Files & Folders</h2>
-
-    <input class="custom-btn" type="file" accept="video/*" id="fileInput" multiple />
-    <button class="custom-btn" onclick="uploadFiles()">Upload</button>
-
-    <div class="flex d-none" id="progressContainer">
-      <div class="progress">
-        <div class="progress-bar" id="progressBar"></div>
+  <div class="explorer-shell">
+    <aside class="explorer-sidebar" aria-label="Storage navigation">
+      <a class="brand" href="/" aria-label="ManageFile home"><span class="brand-mark">M</span><span><span class="app-version">v{{ app_version }}</span>ManageFile<small>FILE EXPLORER</small></span></a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <div class="sidebar-current"><span aria-hidden="true">▦</span> All files</div>
+      <section class="bookmark-section" aria-labelledby="bookmarkHeading">
+        <div class="sidebar-label" id="bookmarkHeading">BOOKMARKS</div>
+        <nav id="bookmarkList" aria-label="Bookmarks"></nav>
+        <button type="button" class="create-shortcut" id="createShortcut"><span aria-hidden="true">＋</span> Create Shortcut</button>
+        <p class="bookmark-hint" id="bookmarkHint" role="status">Saved to your account</p>
+      </section>
+      <div class="sidebar-label">STORAGE DRIVES</div>
+      <nav class="menu_left" id="driveSelect" aria-label="Drives">
+        {% for drive in drives %}
+        <button type="button" class="i-menu {% if system_path[:2]|lower == drive[:2]|lower %}active{% endif %}" onclick="selectdive(this)" title="Open {{ drive }}">{{ drive }}</button>
+        {% endfor %}
+      </nav>
+      <div class="sidebar-account">
+        <a href="{{ url_for('auth_account') }}" title="Account settings">♙ {{ auth_user }}</a>
+        <form action="{{ url_for('auth_logout') }}" method="post"><input type="hidden" name="csrf_token" value="{{ auth_csrf }}" /><button type="submit" class="create-shortcut">Sign out</button></form>
       </div>
-      <span id="progressText">0%</span>
-    </div>
-  </div>
+      <div class="sidebar-note">Your files, organized.<small>Browse, manage and share from one place.</small></div>
+    </aside>
+    <main class="explorer-main">
+      <header class="explorer-header">
+        <div><div class="eyebrow">WORKSPACE</div><h1>All files</h1><p>Browse and manage your files and folders.</p></div>
+        <div class="explorer-header-actions"><a class="ui-button" href="{{ url_for('monitor_page') }}">Ubuntu Monitor</a><a class="ui-button terminal-tab-link" href="{{ url_for('terminal_page', path=system_path) }}" target="_blank" rel="noopener noreferrer">↗ Open Terminal Tab</a><button type="button" class="ui-button" id="openTerminal" aria-controls="terminalPanel" aria-expanded="false">&gt;_ Terminal</button><button type="button" class="ui-button" id="refreshFiles" title="Refresh current folder">↻ <span>Refresh</span></button></div>
+      </header>
+      <section class="container-upload" aria-label="Upload files">
+        <div class="upload-description"><span class="upload-symbol" aria-hidden="true">↑</span><div><h2>Upload to this folder</h2><p>Choose files or drag files and folders into the area below.</p></div></div>
+        <div class="upload-controls"><label class="visually-hidden" for="fileInput">Choose files to upload</label><input type="file" id="fileInput" multiple /><button type="button" class="custom-btn" id="uploadButton" onclick="uploadFiles()">Upload files</button><button type="button" class="ui-button" id="chooseFolder">Upload folder</button><input type="file" id="folderInput" webkitdirectory multiple hidden /></div>
+        <div class="flex d-none" id="progressContainer" role="status" aria-live="polite"><div class="progress"><div class="progress-bar" id="progressBar"></div></div><span id="progressText">0%</span></div>
+      </section>
   <div class="flex d-none" id="progress_zip">
     <p id="progress_text">Progress zip: 0%</p>
     <progress id="progress_bar" value="0" max="100"></progress>
@@ -205,9 +229,9 @@
     <div class="tabMenu-content d-flex justify-content-between align-items-center flex-wrap gap-3">
       <!-- Actions Buttons -->
       <div class="d-flex gap-2 align-items-center">
-        <button type="button" class="btn btn-primary" id="NewFolder">+ New Folder</button>
-        <button type="button" class="btn btn-primary" id="NewFile">📄 New File</button>
-        <button type="button" class="btn btn-primary d-none" id="OpenFile">📂 Open</button>
+        <button type="button" class="btn btn-primary" id="NewFolder">+ New folder</button>
+        <button type="button" class="btn btn-primary" id="NewFile">New file</button>
+        <button type="button" class="btn btn-primary d-none" id="OpenFile">Open</button>
         <button type="button" class="btn btn-secondary" id="SelectAll">✓ Select All</button>
         
         <!-- Options Dropdown -->
@@ -216,6 +240,7 @@
             Options
           </button>
           <ul class="dropdown-menu">
+            <li><button type="button" class="dropdown-item" id="createShortcutOption">☆ Create Shortcut</button></li>
             <li><a class="dropdown-item d-none" id="selectDownload" href="#" onclick="downloadSelectedFiles(); return false;">Download</a></li>
             <li><a class="dropdown-item d-none" id="copyBtn" href="#">Copy</a></li>
             <li><a class="dropdown-item d-none" id="cutBtn" href="#">Cut</a></li>
@@ -236,40 +261,46 @@
       </div>
       
       <!-- View Mode Controls -->
-      <div class="btn-group bar_MenuView" role="group">
+      <div class="file-sort-controls" role="group" aria-label="Sort files and folders" title="Folders are shown first">
+        <label for="fileSortField">Sort by</label>
+        <select id="fileSortField">
+          <option value="name">Name</option>
+          <option value="updated">Updated date</option>
+          <option value="created">Created date</option>
+        </select>
+        <button type="button" class="ui-button" id="fileSortDirection" aria-label="Sort ascending">A → Z</button>
+      </div>
+      <div class="btn-group bar_MenuView" role="group" aria-label="File view">
         <button type="button" class="btn btn-outline-secondary active item_menu" data-view="grid" title="Grid View">
-          <i class="fa-solid fa-table-cells"></i>
+          <span aria-hidden="true">▦</span><span class="visually-hidden">Grid view</span>
         </button>
         <button type="button" class="btn btn-outline-secondary item_menu" data-view="list-multi" title="List Multi-Column View">
-          <i class="fa-regular fa-rectangle-list"></i>
+          <span aria-hidden="true">≡</span><span class="visually-hidden">Details view</span>
         </button>
         <button type="button" class="btn btn-outline-secondary item_menu" data-view="list-vertical" title="List Vertical View">
-          <i class="fa-solid fa-bars"></i>
+          <span aria-hidden="true">☷</span><span class="visually-hidden">Compact view</span>
         </button>
       </div>
     </div>
   </div>
-  <div class="path-bar">
+  <div class="path-bar"><button type="button" class="ui-button up-button" id="parentFolder" aria-label="Go to parent folder" title="Go to parent folder">↑</button>
     <nav class="breadcrumb-navigator" id="breadcrumbNav" aria-label="breadcrumb">
       <input type="text" class="d-none" id="system_path" value="{{ system_path }}" />
     </nav>
     <button type="button" class="btn btn-sm btn-outline-light ms-2" id="copyPathBtn" title="Copy Path">
-      <i class="fa-solid fa-copy"></i> Copy Path
+      Copy path
     </button>
   </div>
 
-  <div class="container">
-    <div class="menu_left" id="driveSelect">
-      {% for drive in drives %}
-      <div class="i-menu {% if drive == system_path %}active{% endif %}" onclick="selectdive(this)">{{ drive }}</div>
-      {% endfor %}
-    </div>
-    <div style="width: 100%; height: 100%;">
+  <section class="files-panel" aria-label="Files and folders">
+    <div class="files-heading"><h2>Folder contents <span class="count-badge">{{ folders|length + files|length }}</span></h2><span>{{ folders|length }} folders · {{ files|length }} files</span></div>
+    <div class="file-content">
+      <script id="itemDates" type="application/json">{{ item_dates|tojson }}</script>
       <div class="box-item-drive drag-area view-grid" id="dropZone">
         <div class="selection-box"></div>
         {% for folder in folders %}
-        <a class="folder-link" onclick="handleClickSelect(this,'{{ system_path }}', '{{ folder }}')"
-          ondblclick="handleDoubleClick('{{ system_path }}', '{{ folder }}')">
+        <a class="folder-link" onclick="handleClickSelect(this,{{ system_path|tojson|forceescape }}, {{ folder|tojson|forceescape }})"
+          ondblclick="handleDoubleClick({{ system_path|tojson|forceescape }}, {{ folder|tojson|forceescape }})">
           <div class="item item_folder selectable-item card border-0 shadow-sm">
             <div class="card-body d-flex flex-column align-items-center justify-content-center p-2">
               <div class="mb-2">
@@ -282,13 +313,13 @@
         {% endfor %}
 
         {% for file, type in file_types.items() %}
-        <a class="folder-link" ondblclick="handleTextFileDoubleClick('{{ system_path }}', '{{ file }}', '{{ type }}')"
-          onclick="handleClickSelect(this,'{{ system_path }}', '{{ file }}',1)">
+        <a class="folder-link" ondblclick="handleTextFileDoubleClick({{ system_path|tojson|forceescape }}, {{ file|tojson|forceescape }}, {{ type|tojson|forceescape }})"
+          onclick="handleClickSelect(this,{{ system_path|tojson|forceescape }}, {{ file|tojson|forceescape }},1)">
           {% if type == 'jpg' or type == 'png' %}
-          <div class="folder-link item item_img selectable-item card border-0 shadow-sm">
+          <div class="item item_img selectable-item card border-0 shadow-sm">
             <div class="card-body d-flex flex-column align-items-center justify-content-center p-2">
               <div class="image-item mb-2" style="width: 80px; height: 80px;">
-                <img class="img-fluid rounded" onclick="openDialog(this.src)" src="./getimage/{{ file }}?path={{ system_path }}" alt="Image" style="width: 100%; height: 100%; object-fit: cover;" />
+                <img class="img-fluid rounded" onclick="openDialog(this.src)" src="{{ url_for('getimage', filename=file, path=system_path) }}" loading="lazy" alt="Image" style="width: 100%; height: 100%; object-fit: cover;" />
               </div>
               <div class="txt text-center text-truncate" style="width: 80px; max-height: 32px; font-size: 0.8rem;">{{ file }}</div>
             </div>
@@ -311,7 +342,7 @@
               <div class="txt text-center text-truncate" style="width: 80px; max-height: 32px; font-size: 0.8rem;">{{ file }}</div>
             </div>
           </div>
-          {% elif type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' or
+          {% elif type == 'env' or file.lower().startswith('.env.') or type == 'txt' or type == 'py' or type == 'ini' or type == 'html' or type == 'js' or type == 'json' or
           type == 'config' or type == 'log' or type == 'cs' or type == 'sql' or type == 'xml' or type == 'bat' or type
           == 'service' or type == 'css' or type == 'php' or type == 'java' or type == 'cpp' or type == 'c' or type == 'rb' or type == 'go' or
           type == 'rs' or type == 'swift' or type == 'kt' or type == 'scala' or type == 'ts' or type == 'jsx' or type ==
@@ -353,9 +384,12 @@
           {% endif %}
         </a>
         {% endfor %}
-        <!-- <i class="fa-solid fa-question"></i> -->
+        {% if not folders and not files %}<div class="empty-folder"><span aria-hidden="true">▱</span><h3>This folder is empty</h3><p>Upload files or create a folder to get started.</p></div>{% endif %}
       </div>
     </div>
+  </section>
+    <footer class="explorer-status"><span id="selectionStatus" role="status" aria-live="polite">{{ folders|length + files|length }} items</span><span>Double-click to open · Hold to select</span></footer>
+    </main>
   </div>
   <div class="boxZoom">
     <!-- Dialog overlay -->
@@ -381,9 +415,7 @@
   </div>
 
   <!-- Chat Icon (Fixed Bottom Left) -->
-  <div class="chat-icon" id="chatIcon" onclick="toggleChatBox()">
-    <i class="fa-solid fa-comments"></i>
-  </div>
+  <button type="button" class="chat-icon" id="chatIcon" onclick="toggleChatBox()" aria-label="Open chat" title="Open chat">Chat</button>
 
   <!-- Chat Box with Tab Menu -->
   <div class="chat-container" id="chatContainer">
@@ -436,11 +468,11 @@
   </div>
 
   <!-- Text Editor Dialog -->
-  <div class="text-editor-dialog" id="textEditorDialog">
+  <div class="text-editor-dialog" id="textEditorDialog" role="dialog" aria-modal="false" aria-labelledby="textEditorTitle">
     <div class="text-editor-content">
-      <div class="text-editor-header">
+      <div class="text-editor-header" tabindex="0" aria-label="Drag to move the editor, or use arrow keys" title="Drag to move">
         <div class="text-editor-title" id="textEditorTitle">Text Editor</div>
-        <button class="text-editor-close" onclick="closeTextEditor()">&times;</button>
+        <div class="text-editor-window-actions"><button type="button" class="text-editor-center" id="centerTextEditor" aria-label="Center editor" title="Center editor">↔</button><button type="button" class="text-editor-close" onclick="closeTextEditor()" aria-label="Close editor">&times;</button></div>
       </div>
       <div class="text-editor-body">
         <div class="text-editor-code-container">
@@ -457,9 +489,26 @@
       </div>
     </div>
   </div>
+  <dialog id="shortcutDialog" class="shortcut-dialog" aria-labelledby="shortcutTitle">
+    <form id="shortcutForm">
+      <div class="shortcut-heading"><h2 id="shortcutTitle">Create Shortcut</h2><button type="button" class="ui-button" id="closeShortcut" aria-label="Close shortcut dialog">×</button></div>
+      <p>Add a folder to Bookmarks for quick access.</p>
+      <label for="shortcutName">Name</label>
+      <input id="shortcutName" name="name" required maxlength="100" autocomplete="off" />
+      <label for="shortcutPath">Folder path</label>
+      <input id="shortcutPath" name="path" required autocomplete="off" spellcheck="false" />
+      <p id="shortcutError" role="alert" hidden></p>
+      <div class="shortcut-actions"><button type="button" class="ui-button" id="cancelShortcut">Cancel</button><button type="submit" class="custom-btn">Save shortcut</button></div>
+    </form>
+  </dialog>
+  <div id="terminalContextMenu" class="terminal-context-menu" hidden><button type="button" id="terminalHere">&gt;_ Open terminal here</button></div>
+  {% include 'terminal-panel.html' %}
+  <script src="{{ url_for('static', filename='terminal.js') }}"></script>
   <script src="{{ url_for('static', filename='chat.js') }}"></script>
   <script src="{{ url_for('static', filename='script_inline.js') }}"></script>
+  <script src="{{ url_for('static', filename='explorer-ui.js') }}"></script>
 </body>
 <script src="{{ url_for('static', filename='java_imagezoom.js') }}"></script>
 
 </html>
+

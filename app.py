@@ -10,10 +10,24 @@ import time
 import shutil
 from PIL import Image
 import io
+from auth_system import AuthSystem
+from terminal_system import TerminalManager
+from monitor_system import UbuntuMonitor
 
 
 app = Flask(__name__, template_folder="templates")
-socketio = SocketIO(app, cors_allowed_origins="*") 
+app.config['APP_VERSION'] = '1.0.0'
+app.config['MANAGEFILE_PORT'] = int(os.environ.get('MANAGEFILE_PORT', '2289'))
+app.config['AUTH_DATA_DIR'] = os.environ.get('MANAGEFILE_AUTH_DIR', os.path.join(app.instance_path, 'auth'))
+# Explicit threading keeps subprocess commands from blocking other HTTP requests.
+socketio = SocketIO(app, async_mode='threading')
+auth = AuthSystem(app, socketio)
+terminal = TerminalManager(app)
+monitor = UbuntuMonitor(app)
+
+@app.context_processor
+def inject_app_version():
+    return {'app_version': app.config['APP_VERSION']}
 
 def is_windows_system():
     """Check if the server is running on Windows based on actual system characteristics."""
@@ -56,6 +70,7 @@ def index():
     selected_path = request.args.get('path', drives[0] if drives else os.path.expanduser("~"))
 
     folders, files, file_types = [], [], {}
+    item_dates = {}
     if selected_path and os.path.exists(selected_path) and os.path.isdir(selected_path):
         try:
             folders = [f for f in os.listdir(selected_path) if os.path.isdir(os.path.join(selected_path, f))]
@@ -63,12 +78,22 @@ def index():
             folders.sort()
             files.sort()
             file_types = {f: f.split('.')[-1] if '.' in f else 'Unknown' for f in files}
+            for name in folders + files:
+                try:
+                    info = os.stat(os.path.join(selected_path, name))
+                    # Unix ctime is a metadata-change time, not a creation date.
+                    created = getattr(info, 'st_birthtime', None)
+                    if created is None and os.name == 'nt':
+                        created = info.st_ctime
+                    item_dates[name] = {'updated': info.st_mtime, 'created': created}
+                except OSError:
+                    item_dates[name] = {'updated': None, 'created': None}
             print("File types:", file_types)
         except PermissionError:
             folders, files, file_types = [], [], {}
     
     return render_template("index.html", system_path=selected_path, drives=drives,
-                           folders=folders, files=files, file_types=file_types)
+                           folders=folders, files=files, file_types=file_types, item_dates=item_dates)
     
     
     
@@ -1008,6 +1033,7 @@ def delete_chat_file(filename):
 
 # SocketIO Event Handlers for Multi-Client Chat
 @socketio.on('connect')
+@auth.socket_connect
 def handle_connect(data=None):
     """Handle client connection"""
     print(f"Client connected: {request.sid}")
@@ -1016,10 +1042,12 @@ def handle_connect(data=None):
 @socketio.on('disconnect')
 def handle_disconnect(data=None):
     """Handle client disconnection"""
+    auth.socket_disconnected(request.sid)
     print(f"Client disconnected: {request.sid}")
     socketio.emit('user_disconnected', {'message': 'A user left the chat!'}, to=None, include_self=False)
 
 @socketio.on('join_chat')
+@auth.socket_required
 def handle_join_chat(data):
     """Handle user joining chat"""
     client_name = data.get('clientName', 'Anonymous')
@@ -1030,6 +1058,7 @@ def handle_join_chat(data):
     }, to=None, include_self=False)
 
 @socketio.on('send_message')
+@auth.socket_required
 def handle_send_message(data):
     """Handle sending messages to all clients"""
     sender = data.get('sender', 'Anonymous')
@@ -1098,7 +1127,11 @@ def handle_send_message(data):
 if __name__ == '__main__':
     # app.run(debug=True, host="0.0.0.0", port=1298)
     #socketio.run(app, debug=True, host="0.0.0.0", port=80)
-    socketio.run(app, host="0.0.0.0", port=1298, debug=True ,allow_unsafe_werkzeug=True)
+    port = app.config['MANAGEFILE_PORT']
+    print(f"[ManageFile] Starting HTTP server (threading) on port {port}...", flush=True)
+    print(f"[ManageFile] Open http://127.0.0.1:{port}/ in your browser.", flush=True)
+    print("[ManageFile] Keep this window open. Press Ctrl+C to stop the server.", flush=True)
+    socketio.run(app, host="0.0.0.0", port=port, debug=False, use_reloader=False, allow_unsafe_werkzeug=True)
 # python -m flask run --host=0.0.0.0 --port=1298 --debug
 
 

@@ -1163,6 +1163,8 @@ function executePaste(destinationPath, items) {
 
 // Text Editor Variables
 let currentTextFilePath = '';
+let currentTextFileName = '';
+let originalTextFileContent = '';
 let currentTextFileType = '';
 let codeEditor = null;
 
@@ -1209,21 +1211,22 @@ function initializeCodeEditor() {
 
 // Handle double-click on text files
 function handleTextFileDoubleClick(systemPath, fileName, fileType) {
+  fileType = String(fileType || '').toLowerCase();
+  if (/^\.env(?:\.|$)/i.test(fileName) || fileType === 'env') fileType = 'env';
   // Check if it's a supported text file type
   const supportedTypes = ['txt', 'py', 'ini', 'html', 'js', 'json', 'config', 'log', 'cs', 'sql', 'xml', 'bat', 'service', 'css', 'php', 'java', 'cpp', 'c', 'rb', 'go', 'rs', 'swift', 'kt', 'scala', 'ts', 'jsx', 'tsx', 'vue', 'svelte', 'dockerfile', 'yml', 'yaml', 'toml', 'md', 'sh', 'ps1', 'r', 'm', 'pl', 'lua', 'hs', 'fs', 'clj', 'ex', 'elm', 'nim', 'zig', 'v', 'cr', 'dart', 'coffee', 'less', 'sass', 'scss', 'styl', 'asm', 's', 'f90', 'pas', 'bas', 'vbs', 'ahk', 'au3'];
-  if (!supportedTypes.includes(fileType)) {
+  if (fileType !== 'env' && !supportedTypes.includes(fileType)) {
     return; // Do nothing for non-text files
   }
 
-  currentTextFilePath = systemPath;
-  currentTextFileType = fileType;
+  if (codeEditor && currentTextFileName && codeEditor.getValue() !== originalTextFileContent && !confirm('Discard unsaved changes and open another file?')) return;
 
   // Load the file content
-  loadTextFile(systemPath, fileName);
+  loadTextFile(systemPath, fileName, fileType);
 }
 
 // Load text file content
-function loadTextFile(systemPath, fileName) {
+function loadTextFile(systemPath, fileName, fileType = currentTextFileType) {
   fetch('/read_text_file', {
     method: 'POST',
     headers: {
@@ -1237,6 +1240,10 @@ function loadTextFile(systemPath, fileName) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
+        currentTextFilePath = systemPath;
+        currentTextFileName = fileName;
+        currentTextFileType = fileType;
+        originalTextFileContent = data.content;
         document.getElementById('textEditorTitle').textContent = `Text Editor - ${fileName}`;
         // Initialize CodeMirror if not already done
         if (!codeEditor) {
@@ -1250,7 +1257,7 @@ function loadTextFile(systemPath, fileName) {
         document.getElementById('textEditorDialog').style.display = 'flex';
         // Enforce overlay color with !important at runtime
         document.getElementById('textEditorDialog')
-          .style.setProperty('background-color', 'rgba(0, 0, 0, 0.8)', 'important');
+          .style.setProperty('background-color', 'transparent', 'important');
         document.getElementById('textEditorDialog')
           .style.setProperty('display', 'flex', 'important');
 
@@ -1275,7 +1282,7 @@ function loadTextFile(systemPath, fileName) {
 // Save text file
 function saveTextFile() {
   const content = codeEditor.getValue();
-  const fileName = document.getElementById('textEditorTitle').textContent.split(' - ')[1];
+  const fileName = currentTextFileName;
 
   fetch('/save_text_file', {
     method: 'POST',
@@ -1292,6 +1299,7 @@ function saveTextFile() {
     .then(data => {
       if (data.success) {
         alert('File saved successfully!');
+        originalTextFileContent = content;
         closeTextEditor();
       } else {
         alert('Error saving file: ' + data.error);
@@ -1305,12 +1313,15 @@ function saveTextFile() {
 
 // Close text editor
 function closeTextEditor() {
+  if (codeEditor && currentTextFileName && codeEditor.getValue() !== originalTextFileContent && !confirm('Discard unsaved changes?')) return;
   document.getElementById('textEditorDialog').style.display = 'none';
   if (codeEditor) {
     codeEditor.setValue('');
   }
   document.getElementById('textEditorDialog').classList.remove('code-editor-mode');
   currentTextFilePath = '';
+  currentTextFileName = '';
+  originalTextFileContent = '';
   currentTextFileType = '';
 }
 
@@ -1467,6 +1478,9 @@ function setSyntaxHighlighting(fileType) {
     case 'ini':
       mode = 'text/x-ini';
       break;
+    case 'env':
+      mode = 'text/plain';
+      break;
     case 'config':
       mode = 'text/x-ini';
       break;
@@ -1555,7 +1569,11 @@ function createBreadcrumbNavigator(path) {
   if (!breadcrumbNav) return;
   
   // Clear existing breadcrumb
-  breadcrumbNav.innerHTML = '<input type="text" class="d-none" id="system_path" value="' + (path || '') + '" />';
+  const pathInput = document.createElement('input');
+  pathInput.type = 'hidden';
+  pathInput.id = 'system_path';
+  pathInput.value = path || '';
+  breadcrumbNav.replaceChildren(pathInput);
   
   if (!path) return;
   
@@ -1997,6 +2015,11 @@ function setViewMode(mode) {
 // Function to create table view for list-multi mode
 function createTableView() {
   const dropZone = document.getElementById('dropZone');
+  const itemDates = JSON.parse(document.getElementById('itemDates')?.textContent || '{}');
+  const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  });
   
   // Remove existing table if any
   const existingTable = dropZone.querySelector('.table-container');
@@ -2045,6 +2068,8 @@ function createTableView() {
   headerRow.innerHTML = `
     <th>#</th>
     <th>Name</th>
+    <th class="date-column">Updated date</th>
+    <th class="date-column">Created date</th>
     <th>Download</th>
   `;
   thead.appendChild(headerRow);
@@ -2090,6 +2115,8 @@ function createTableView() {
       isFile = !isFolder;
     }
     
+    systemPath = document.getElementById('system_path').value;
+
     // Get icon
     let iconClass = 'fa-solid fa-file';
     let iconColor = '#f1f1f1';
@@ -2118,11 +2145,32 @@ function createTableView() {
     
     // Name with icon
     const tdName = document.createElement('td');
-    tdName.innerHTML = `
-      <i class="${iconClass}" style="color: ${iconColor};"></i>
-      <span class="item-name">${itemName}</span>
-    `;
+    const itemIcon = document.createElement('i');
+    itemIcon.className = iconClass;
+    itemIcon.style.color = iconColor;
+    const itemLabel = document.createElement('span');
+    itemLabel.className = 'item-name';
+    itemLabel.textContent = itemName;
+    tdName.append(itemIcon, itemLabel);
     row.appendChild(tdName);
+
+    ['updated', 'created'].forEach(field => {
+      const cell = document.createElement('td');
+      cell.className = 'date-column';
+      const timestamp = itemDates[itemName]?.[field];
+      const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : null;
+      if (date && !Number.isNaN(date.getTime())) {
+        const time = document.createElement('time');
+        time.dateTime = date.toISOString();
+        time.textContent = dateFormatter.format(date).replace(',', '');
+        time.title = date.toLocaleString();
+        cell.appendChild(time);
+      } else {
+        cell.textContent = '—';
+        cell.title = field === 'created' ? 'Creation date is not available from this filesystem.' : 'Date unavailable.';
+      }
+      row.appendChild(cell);
+    });
     
     // Download button
     const tdDownload = document.createElement('td');
@@ -2141,6 +2189,16 @@ function createTableView() {
       if (e.target.closest('.download-btn')) return;
       handleTableItemClick(this, systemPath, itemName, isFolder ? 0 : 1);
     };
+
+    // Reuse the original item's open action for folders and every file type.
+    row.ondblclick = function(e) {
+      if (e.target.closest('.download-btn')) return;
+      if (link) {
+        link.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      }
+    };
+    row.style.cursor = 'pointer';
+    row.title = 'Double-click to open ' + itemName;
     
     // Store data attributes for easy access
     row.setAttribute('data-system-path', systemPath);
@@ -2153,6 +2211,7 @@ function createTableView() {
   table.appendChild(tbody);
   tableContainer.appendChild(table);
   dropZone.appendChild(tableContainer);
+  dropZone.dispatchEvent(new Event('fileviewchange'));
 }
 
 // Select All / Unselect All functionality
